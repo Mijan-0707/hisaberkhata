@@ -18,6 +18,7 @@ class StudentProfile extends StatefulWidget {
 }
 
 class _StudentProfileState extends State<StudentProfile> {
+  bool editPayment = false;
   @override
   Widget build(BuildContext context) {
     print(widget.details.name);
@@ -57,7 +58,7 @@ class _StudentProfileState extends State<StudentProfile> {
         actions: [
           PopupMenuButton(
             itemBuilder: (c) {
-              return {'Edit', 'Delete','Edit Payment'}.map((String choice) {
+              return {'Edit', 'Delete', 'Edit Payment'}.map((String choice) {
                 return PopupMenuItem(
                     onTap: () async {
                       print(choice);
@@ -191,7 +192,7 @@ class _StudentProfileState extends State<StudentProfile> {
                             Navigator.pop(context, true);
                           },
                         );
-                      }else if(choice=='Edit Payment'){
+                      } else if (choice == 'Edit Payment') {
                         bool EditPayment = true;
                       }
                     },
@@ -292,12 +293,13 @@ class _StudentProfileState extends State<StudentProfile> {
           for (int i = 0; i < payedMonth.length; i++)
             ListTile(
               title: Text(payedMonth[i]),
-            
               subtitle: Text('payed on ${DateTime.now()}'),
-              trailing:Row(children: [
-              if(editPayment==true)
-                IconButton(onPressed: (){}, icon: Icon(Icons.edit))
-              ],),
+              trailing: Row(
+                children: [
+                  if (editPayment == true)
+                    IconButton(onPressed: () {}, icon: Icon(Icons.edit))
+                ],
+              ),
             )
         ],
       ),
