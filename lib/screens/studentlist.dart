@@ -1,27 +1,23 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:hisaberkhata/appdata/appdata.dart';
+import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/screens/homescreen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class StudentListPage extends StatefulWidget {
-  String batchName;
+  const StudentListPage({super.key, required this.batchName});
 
-  StudentListPage({super.key, required this.batchName});
+  final String batchName;
 
   @override
   State<StudentListPage> createState() => _StudentListPageState();
 }
 
 class _StudentListPageState extends State<StudentListPage> {
-  List<StudenDetails> students = [
-    // StudenDetails('name1', 'mobile1', 'address1', 1, 1000, 1),
-    // StudenDetails('name2', 'mobile2', 'address2', 2, 2000, 2),
-    // StudenDetails('name3', 'mobile3', 'address3', 3, 3000, 3),
-    // StudenDetails('name4', 'mobile4', 'address4', 4, 4000, 4),
-  ];
+  List<StudentDetails> students = [];
+
   @override
   void initState() {
     super.initState();
@@ -113,13 +109,13 @@ class _StudentListPageState extends State<StudentListPage> {
                                 const SnackBar(content: Text('Name is Empty')));
                             return;
                           }
-                          final st = StudenDetails(
+                          final st = StudentDetails(
                               name: name,
                               roll: roll,
                               mobile: mobile,
                               address: address,
                               payment: payment,
-                              studentBatch: widget.batchName);
+                              batch: widget.batchName);
 
                           // print(json);
                           // await prefs.setString('name', name);
@@ -210,13 +206,13 @@ class _StudentListPageState extends State<StudentListPage> {
     var jsodecode = jsonDecode(json) as List;
     for (int i = 0; i < jsodecode.length; i++) {
       print(jsodecode[i]['name']);
-      students.add(StudenDetails(
+      students.add(StudentDetails(
           name: jsodecode[i]['name'],
           mobile: jsodecode[i]['mobile'],
           address: jsodecode[i]['address'],
           roll: jsodecode[i]['roll'],
           payment: jsodecode[i]['payment'],
-          studentBatch: jsodecode[i]['studentBatch']));
+          batch: jsodecode[i]['studentBatch']));
     }
     // final String name = prefs.getString('name') ?? '';
     // final String roll = prefs.getString('roll') ?? '';

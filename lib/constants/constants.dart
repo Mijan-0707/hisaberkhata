@@ -1,3 +1,3 @@
 class PreferenceConstants{
-  final batchNameKey = "batchName";
+  static const batchNameKey = "batchName";
 }

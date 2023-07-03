@@ -1,17 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:hisaberkhata/appdata/appdata.dart';
-import 'package:hisaberkhata/screens/studentlist.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StudentProfile extends StatefulWidget {
   const StudentProfile(
       {super.key, required this.details, required this.studentlist});
-  final StudenDetails details;
-  final List<StudenDetails> studentlist;
+
+  final StudentDetails details;
+  final List<StudentDetails> studentlist;
 
   @override
   State<StudentProfile> createState() => _StudentProfileState();
@@ -19,6 +18,9 @@ class StudentProfile extends StatefulWidget {
 
 class _StudentProfileState extends State<StudentProfile> {
   bool editPayment = false;
+
+  var payedMonth = [];
+
   @override
   Widget build(BuildContext context) {
     print(widget.details.name);

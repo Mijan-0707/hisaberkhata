@@ -1,100 +1,84 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:hisaberkhata/constants/constants.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppData {
   Future<File> get _localFile async {
-    final directory = await getExternalStorageDirectory();
-    return File('$directory/hisaberkhata_backup.txt');
+    var status = await Permission.storage.status;
+    if (!status.isGranted) await Permission.storage.request();
+
+    final Directory dir;
+    if (Platform.isAndroid) {
+      dir = Directory('/storage/emulated/0/Download/HK_backup');
+    } else {
+      dir = await getApplicationDocumentsDirectory();
+    }
+    final f = File('${dir.path}/data.json');
+    if (!(await f.exists())) await f.create(recursive: true);
+    return f;
   }
 
   Future<List<String>> getData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    var studentBatchJsonE = prefs.getString('studentBatchJsonE');
-    print(json);
-    if (studentBatchJsonE == null || studentBatchJsonE.isEmpty) return [];
-    List<dynamic> studentBatchJsonD = jsonDecode(studentBatchJsonE);
+    final batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
+
+    if (batchNamesStr == null || batchNamesStr.isEmpty) return [];
+    List<dynamic> batchNames = jsonDecode(batchNamesStr);
     final studentBatch = <String>[];
-    for (int i = 0; i < studentBatchJsonD.length; i++) {
-      studentBatch.add(studentBatchJsonD[i]);
+    for (int i = 0; i < batchNames.length; i++) {
+      studentBatch.add(batchNames[i]);
     }
     return studentBatch;
   }
 
-  void backup() async {
+  void createBackup() async {
     final file = await _localFile;
     print(file.path);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    var studentBatchJsonD = prefs.getString('studentBatchJsonE');
-    if (studentBatchJsonD == null) return;
-    print(studentBatchJsonD);
-    List<dynamic> studentBatchJsonE = jsonDecode(studentBatchJsonD);
+    var batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
+    if (batchNamesStr == null) return;
+    List<dynamic> batchNames = jsonDecode(batchNamesStr);
 
-    Map<String, dynamic> sajhj = {};
-    for (int i = 0; i < studentBatchJsonE.length; i++) {
-      final batch = studentBatchJsonE[i];
-      final students = prefs.getString(batch);
+    Map<String, dynamic> data = {};
+    for (int i = 0; i < batchNames.length; i++) {
+      final batch = batchNames[i];
+      final studentsStr = prefs.getString(batch);
+      if (studentsStr == null) continue;
+      final students = jsonDecode(studentsStr);
       print([batch, students]);
-      sajhj[batch] = students;
+      data[batch] = students;
     }
-    var backupString = jsonEncode(sajhj);
-    print(backupString);
-    // Write the file
-    file.writeAsString(backupString);
+
+    var backupStr = jsonEncode(data);
+    print(backupStr);
+    file.writeAsString(backupStr);
   }
 
-  Future<void> retore() async {
+  Future<void> restoreData() async {
     try {
       final file = await _localFile;
 
       // Read the file
-      final backupString = await file.readAsString();
-      final backupStringD = jsonDecode(backupString) as Map?;
-      if (backupStringD == null) return;
-      print(backupString);
+      final backupStr = await file.readAsString();
+      if (backupStr.isEmpty) return;
+
+      final dataMap = jsonDecode(backupStr) as Map?;
+      if (dataMap == null || dataMap.isEmpty) return;
+
+      print(backupStr);
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final keys = backupStringD.keys.toList();
+      final keys = dataMap.keys.toList();
+      await prefs.setString(PreferenceConstants.batchNameKey, jsonEncode(keys));
 
       for (int i = 0; i < keys.length; i++) {
-        print(backupStringD[keys[i]]);
-
-        await prefs.setString(keys[i], backupStringD[keys[i]]);
+        await prefs.setString(keys[i], dataMap[keys[i]]);
       }
-      await prefs.setString('studentBatchJsonE', jsonEncode(keys));
     } catch (e) {
       print(e);
     }
   }
 }
-
-class StudenDetails {
-  StudenDetails(
-      {required this.name,
-      required this.mobile,
-      required this.address,
-      required this.roll,
-      required this.payment,
-      required this.studentBatch});
-
-  String name, mobile, address, roll, payment, studentBatch;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'address': address,
-      'mobile': mobile,
-      'roll': roll,
-      'payment': payment,
-      'studentBatch': studentBatch
-    };
-  }
-
-  @override
-  String toString() {
-    return '$name, $mobile, $address';
-  }
-}
-
-final payedMonth = [];

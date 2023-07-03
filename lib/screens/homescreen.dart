@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
+import 'package:hisaberkhata/constants/constants.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -78,8 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
             studentBatch.add(batch);
             var studentBatchJsonE = jsonEncode(studentBatch);
             // print(batchName);
-            final res =
-                await prefs.setString('studentBatchJsonE', studentBatchJsonE);
+            final res = await prefs.setString(
+                PreferenceConstants.batchNameKey, studentBatchJsonE);
             // await Future.delayed(Duration(seconds: 1));
             // await prefs.reload();
             // print([res, prefs.getString('123'), prefs.getKeys()]);
@@ -97,9 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
               return PopupMenuItem(
                 onTap: () async {
                   if (choice == 'Backup') {
-                    appData.backup();
+                    appData.createBackup();
                   } else if (choice == 'Restore') {
-                    await appData.retore();
+                    await appData.restoreData();
                     setState(() {});
                   }
                 },
