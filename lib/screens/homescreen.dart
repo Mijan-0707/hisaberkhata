@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,6 +16,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<String> studentBatch = [];
+  Future<String> get _localPath async {
+    final directory = await getExternalStorageDirectory();
+
+    return directory!.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/hisaberkhata_backup.txt');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,9 +96,26 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: const Color(0xff536DFE),
           child: const Icon(Icons.add)),
       appBar: AppBar(
-          centerTitle: true,
-          title: const Text('List Of Batches'),
-          backgroundColor: const Color(0xff536DFE)),
+        centerTitle: true,
+        title: const Text('List Of Batches'),
+        backgroundColor: const Color(0xff536DFE),
+        actions: [
+          PopupMenuButton(itemBuilder: (c) {
+            return {'Backup', 'Restore'}.map((String choice) {
+              return PopupMenuItem(
+                onTap: () {
+                  if (choice == 'Backup') {
+                    backup();
+                  } else if (choice == 'Restore') {
+                    retore();
+                  }
+                },
+                child: Text(choice),
+              );
+            }).toList();
+          })
+        ],
+      ),
       body: ListView(
         children: [
           for (int i = 0; i < studentBatch.length; i++)
@@ -125,10 +155,57 @@ class _HomeScreenState extends State<HomeScreen> {
     var studentBatchJsonE = prefs.getString('studentBatchJsonE');
     print(json);
     if (studentBatchJsonE == null || studentBatchJsonE.isEmpty) return;
-    String studentBatchJsonD = jsonDecode(studentBatchJsonE);
+    List<dynamic> studentBatchJsonD = jsonDecode(studentBatchJsonE);
     for (int i = 0; i < studentBatchJsonD.length; i++) {
       studentBatch.add(studentBatchJsonD[i]);
     }
     setState(() {});
+  }
+
+  void backup() async {
+    final file = await _localFile;
+    print(file.path);
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    var studentBatchJsonD = prefs.getString('studentBatchJsonE');
+    if (studentBatchJsonD == null) return;
+    print(studentBatchJsonD);
+    List<dynamic> studentBatchJsonE = jsonDecode(studentBatchJsonD);
+
+    Map<String, dynamic> sajhj = {};
+    for (int i = 0; i < studentBatchJsonE.length; i++) {
+      final batch = studentBatchJsonE[i];
+      final students = prefs.getString(batch);
+      print([batch, students]);
+      sajhj[batch] = students;
+    }
+    var backupString = jsonEncode(sajhj);
+    print(backupString);
+    // Write the file
+    file.writeAsString(backupString);
+  }
+
+  void retore() async {
+    try {
+      final file = await _localFile;
+
+      // Read the file
+      final backupString = await file.readAsString();
+      final backupStringD = jsonDecode(backupString) as Map?;
+      if (backupStringD == null) return;
+      print(backupString);
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final keys = backupStringD.keys.toList();
+
+      for (int i = 0; i < keys.length; i++) {
+        print(backupStringD[keys[i]]);
+
+        prefs.setString(keys[i], backupStringD[keys[i]]);
+      }
+      prefs.setString('studentBatchJsonE', jsonEncode(keys));
+      setState(() {});
+      // return int.parse(contents);
+    } catch (e) {
+      // If encountering an error, return 0
+    }
   }
 }

@@ -61,7 +61,7 @@ class _StudentProfileState extends State<StudentProfile> {
               return {'Edit', 'Delete', 'Edit Payment'}.map((String choice) {
                 return PopupMenuItem(
                     onTap: () async {
-                      print(choice);
+                      // print(choice);
                       if (choice == 'Edit') {
                         Future.delayed(
                           Duration(seconds: 0),
@@ -99,6 +99,8 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            controller: TextEditingController(
+                                                text: widget.details.roll),
                                             decoration: InputDecoration(
                                                 labelText: 'Roll',
                                                 border: OutlineInputBorder(
@@ -111,6 +113,8 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            controller: TextEditingController(
+                                                text: widget.details.mobile),
                                             decoration: InputDecoration(
                                                 labelText: 'Mobile',
                                                 border: OutlineInputBorder(
@@ -123,6 +127,8 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            controller: TextEditingController(
+                                                text: widget.details.address),
                                             decoration: InputDecoration(
                                                 labelText: 'Address',
                                                 border: OutlineInputBorder(
@@ -135,6 +141,8 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            controller: TextEditingController(
+                                                text: widget.details.address),
                                             decoration: InputDecoration(
                                                 labelText: 'Payment',
                                                 border: OutlineInputBorder(
