@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    appData.getData().then((value) {
+    appData.getBatchNames().then((value) {
       studentBatch = value;
       setState(() {});
     });

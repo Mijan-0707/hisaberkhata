@@ -1,16 +1,17 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class StudentProfile extends StatefulWidget {
   const StudentProfile(
-      {super.key, required this.details, required this.studentlist});
+      {super.key, required this.batchName, required this.stuIndex});
 
-  final StudentDetails details;
-  final List<StudentDetails> studentlist;
+  final String batchName;
+  final int stuIndex;
 
   @override
   State<StudentProfile> createState() => _StudentProfileState();
@@ -18,30 +19,51 @@ class StudentProfile extends StatefulWidget {
 
 class _StudentProfileState extends State<StudentProfile> {
   bool editPayment = false;
+ StudentDetails details = StudentDetails();
 
-  var payedMonth = [];
+@override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    AppData().getStudentDetails(widget.batchName, widget.stuIndex).then((value) {
+      print(value);
+       details = value;
+      setState(() {
 
+      });
+    });
+
+  }
   @override
   Widget build(BuildContext context) {
-    print(widget.details.name);
+    print(details.name);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            String monthPayed = '';
+            String payedMonth = '';
             await showDialog(
               context: context,
               builder: (context) {
                 return Dialog(
-                  child: Column(
+                  child: Column(mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(
-                        onChanged: (value) {
-                          monthPayed = value;
-                        },
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          decoration: InputDecoration(
+                              labelText: 'Payment',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16))),
+                          onChanged: (value) {
+                            payedMonth = value;
+                          },
+                        ),
                       ),
                       TextButton(
-                          onPressed: () {
-                            payedMonth.add(monthPayed);
+                          onPressed: () async{
+
+
+
                             Navigator.pop(context);
                           },
                           child: const Text('Save'))
@@ -50,8 +72,10 @@ class _StudentProfileState extends State<StudentProfile> {
                 );
               },
             );
-            print('object');
+            details.paymentHistory.add(payedMonth);
             setState(() {});
+            AppData().updateStudentDetails(widget.batchName, widget.stuIndex, details);
+            print('object');
           },
           child: const Icon(Icons.add)),
       appBar: AppBar(
@@ -67,8 +91,8 @@ class _StudentProfileState extends State<StudentProfile> {
                       if (choice == 'Edit') {
                         Future.delayed(
                           Duration(seconds: 0),
-                          () {
-                            showDialog(
+                          () async{
+                           await showDialog(
                               context: context,
                               builder: (context) {
                                 return Dialog(
@@ -88,6 +112,8 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                          controller: TextEditingController(
+                                              text: details.name),
                                           decoration: InputDecoration(
                                               labelText: 'Name',
                                               border: OutlineInputBorder(
@@ -95,14 +121,14 @@ class _StudentProfileState extends State<StudentProfile> {
                                                       BorderRadius.circular(
                                                           16))),
                                           onChanged: (value) =>
-                                              widget.details.name = value,
+                                              details.name = value,
                                         ),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
                                             controller: TextEditingController(
-                                                text: widget.details.roll),
+                                                text: details.roll),
                                             decoration: InputDecoration(
                                                 labelText: 'Roll',
                                                 border: OutlineInputBorder(
@@ -110,13 +136,13 @@ class _StudentProfileState extends State<StudentProfile> {
                                                         BorderRadius.circular(
                                                             16))),
                                             onChanged: (value) =>
-                                                widget.details.roll = value),
+                                                details.roll = value),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
                                             controller: TextEditingController(
-                                                text: widget.details.mobile),
+                                                text: details.mobile),
                                             decoration: InputDecoration(
                                                 labelText: 'Mobile',
                                                 border: OutlineInputBorder(
@@ -124,13 +150,13 @@ class _StudentProfileState extends State<StudentProfile> {
                                                         BorderRadius.circular(
                                                             16))),
                                             onChanged: (value) =>
-                                                widget.details.mobile = value),
+                                                details.mobile = value),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
                                             controller: TextEditingController(
-                                                text: widget.details.address),
+                                                text: details.address),
                                             decoration: InputDecoration(
                                                 labelText: 'Address',
                                                 border: OutlineInputBorder(
@@ -138,13 +164,13 @@ class _StudentProfileState extends State<StudentProfile> {
                                                         BorderRadius.circular(
                                                             16))),
                                             onChanged: (value) =>
-                                                widget.details.address = value),
+                                                details.address = value),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
                                             controller: TextEditingController(
-                                                text: widget.details.address),
+                                                text: details.address),
                                             decoration: InputDecoration(
                                                 labelText: 'Payment',
                                                 border: OutlineInputBorder(
@@ -152,19 +178,11 @@ class _StudentProfileState extends State<StudentProfile> {
                                                         BorderRadius.circular(
                                                             16))),
                                             onChanged: (value) =>
-                                                widget.details.payment = value),
+                                                details.payment = value),
                                       ),
                                       TextButton(
-                                        onPressed: () {
+                                        onPressed: () async {
                                           Navigator.pop(context);
-                                          setState(() async {
-                                            final SharedPreferences prefs =
-                                                await SharedPreferences
-                                                    .getInstance();
-                                            var json =
-                                                jsonEncode(widget.studentlist);
-                                            await prefs.setString('json', json);
-                                          });
                                         },
                                         child: Container(
                                           decoration: BoxDecoration(
@@ -185,16 +203,24 @@ class _StudentProfileState extends State<StudentProfile> {
                                     ],
                                   ),
                                 );
+
                               },
                             );
+
+
+                           AppData().updateStudentDetails(widget.batchName, widget.stuIndex, details);
+                            setState(() {
+
+                            });
                           },
                         );
+
                       } else if (choice == 'Delete') {
-                        final SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
-                        widget.studentlist.remove(widget.details);
-                        var json = jsonEncode(widget.studentlist);
-                        await prefs.setString('json', json);
+                        // final SharedPreferences prefs =
+                        //     await SharedPreferences.getInstance();
+                        // widget.studentlist.remove(details);
+                        // var json = jsonEncode(widget.studentlist);
+                        // await prefs.setString('json', json);
                         setState(() {});
                         Future.delayed(
                           Duration(seconds: 0),
@@ -209,9 +235,11 @@ class _StudentProfileState extends State<StudentProfile> {
                     value: choice,
                     child: Text(choice));
               }).toList();
-            },
+ },
           )
+
         ],
+
       ),
       body: ListView(
         children: [
@@ -241,70 +269,70 @@ class _StudentProfileState extends State<StudentProfile> {
                 const SizedBox(
                   width: 20,
                 ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // for (int i = 0; i < students.length; i++)
-                    Text(
-                      '${widget.details.name}  - ${widget.details.roll}',
-                      style: const TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    Text(
-                      widget.details.address,
-                      style: const TextStyle(fontSize: 20, color: Colors.white),
-                    ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // for (int i = 0; i < students.length; i++)
+                      Text(
+                        '${details.name}  - ${details.roll}',
+                        style: const TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                      Text(
+                        details.address,
+                        style: const TextStyle(fontSize: 20, color: Colors.white),
+                      ),
 
-                    // Text(
-                    //   widget.details.roll,
-                    //   style: const TextStyle(fontSize: 20, color: Colors.white),
-                    // ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 40),
-                          child: Text(
-                            widget.details.mobile,
+                      // Text(
+                      //   details.roll,
+                      //   style: const TextStyle(fontSize: 20, color: Colors.white),
+                      // ),
+                      Row(
+                        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text(
+                            details.mobile,
                             style: const TextStyle(
                                 fontSize: 20, color: Colors.white),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            launchUrl(
-                                Uri.parse('tel:${widget.details.mobile}'));
-                          },
-                          icon: const Icon(
-                            Icons.call,
-                            color: Colors.white,
-                          ),
-                        ),
-                        IconButton(
+                          Spacer(),
+                          IconButton(
                             onPressed: () {
                               launchUrl(
-                                  Uri.parse('sms:${widget.details.mobile}'));
+                                  Uri.parse('tel:${details.mobile}'));
                             },
                             icon: const Icon(
-                              Icons.sms_rounded,
+                              Icons.call,
                               color: Colors.white,
-                            ))
-                      ],
-                    ),
-                    Text(
-                      widget.details.payment,
-                      style: const TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                  ],
+                            ),
+                          ),
+                          IconButton(
+                              onPressed: () {
+                                launchUrl(
+                                    Uri.parse('sms:${details.mobile}'));
+                              },
+                              icon: const Icon(
+                                Icons.sms_rounded,
+                                color: Colors.white,
+                              ))
+                        ],
+                      ),
+                      Text(
+                        details.payment,
+                        style: const TextStyle(fontSize: 20, color: Colors.white),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          for (int i = 0; i < payedMonth.length; i++)
+          for (int i = 0; i < details.paymentHistory.length; i++)
             ListTile(
-              title: Text(payedMonth[i]),
+              title: Text(details.paymentHistory[i]),
               subtitle: Text('payed on ${DateTime.now()}'),
-              trailing: Row(
+              trailing: Row(mainAxisSize: MainAxisSize.min,
                 children: [
                   if (editPayment == true)
                     IconButton(onPressed: () {}, icon: Icon(Icons.edit))

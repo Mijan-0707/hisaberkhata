@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/constants/constants.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppData {
-  Future<File> get _localFile async {
+  Future<File?> get _localFile async {
     var status = await Permission.storage.status;
     if (!status.isGranted) await Permission.storage.request();
-
+    if (!status.isGranted) return null;
     final Directory dir;
     if (Platform.isAndroid) {
       dir = Directory('/storage/emulated/0/Download/HK_backup');
@@ -22,7 +23,7 @@ class AppData {
     return f;
   }
 
-  Future<List<String>> getData() async {
+  Future<List<String>> getBatchNames() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
 
@@ -35,8 +36,47 @@ class AppData {
     return studentBatch;
   }
 
+  Future<List<StudentDetails>> getStudents(String batch) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final studentsListStr = prefs.getString(batch);
+
+    if (studentsListStr == null || studentsListStr.isEmpty) return [];
+    List<dynamic> studentsList = jsonDecode(studentsListStr);
+    final students = <StudentDetails>[];
+    for (int i = 0; i < studentsList.length; i++) {
+      final s = StudentDetails(
+        name: studentsList[i]['name'],
+        mobile: studentsList[i]['mobile'],
+        address: studentsList[i]['address'],
+        roll: studentsList[i]['roll'],
+        payment: studentsList[i]['payment'],
+        batch: studentsList[i]['studentBatch'],
+      );
+
+      final records = studentsList[i]['paymentHistory'] as List?;
+      // records.forEach(s.paymentHistory.add);
+      // records.forEach((value) {
+      //   s.paymentHistory.add(value);
+      // });
+
+      if (records != null) {
+        for (var r in records) {
+          s.paymentHistory.add(r as String);
+        }
+      }
+      students.add(s);
+    }
+    return students;
+  }
+
+  Future<StudentDetails> getStudentDetails(String batchName, int index) async {
+    final students = await getStudents(batchName);
+    return students[index];
+  }
+
   void createBackup() async {
     final file = await _localFile;
+    if (file == null) return;
     print(file.path);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
@@ -61,7 +101,7 @@ class AppData {
   Future<void> restoreData() async {
     try {
       final file = await _localFile;
-
+      if (file == null) return;
       // Read the file
       final backupStr = await file.readAsString();
       if (backupStr.isEmpty) return;
@@ -80,5 +120,15 @@ class AppData {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<void> updateStudentDetails(
+      String batchName, int index, StudentDetails details) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final studentsListStr = prefs.getString(batchName);
+    if (studentsListStr == null || studentsListStr.isEmpty) return;
+    List<dynamic> studentsList = jsonDecode(studentsListStr);
+    studentsList[index] = details.toJson();
+    await prefs.setString(batchName, jsonEncode(studentsList));
   }
 }

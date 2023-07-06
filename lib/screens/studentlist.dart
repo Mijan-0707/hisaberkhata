@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/screens/homescreen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
@@ -21,7 +22,10 @@ class _StudentListPageState extends State<StudentListPage> {
   @override
   void initState() {
     super.initState();
-    getData();
+    AppData().getStudents(widget.batchName).then((value) {
+      students.addAll(value);
+      setState(() {});
+    });
   }
 
   @override
@@ -39,8 +43,8 @@ class _StudentListPageState extends State<StudentListPage> {
                   address = '',
                   payment = '';
               return Dialog(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                child: ListView(
+                  shrinkWrap: true,
                   children: [
                     const Padding(
                       padding: EdgeInsets.all(8.0),
@@ -173,16 +177,19 @@ class _StudentListPageState extends State<StudentListPage> {
           for (int i = 0; i < students.length; i++)
             GestureDetector(
               onTap: () async {
-                final result = await Navigator.push(
+                await Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: ((context) => StudentProfile(
-                              details: students[i],
-                              studentlist: students,
+                              batchName: widget.batchName,
+                              stuIndex: i,
                             ))));
-                if (result == true) {
+
+                AppData().getStudents(widget.batchName).then((value) {
+                  students.clear();
+                  students.addAll(value);
                   setState(() {});
-                }
+                });
               },
               child: ListTile(
                 tileColor: Colors.tealAccent,
@@ -197,38 +204,5 @@ class _StudentListPageState extends State<StudentListPage> {
         ],
       ),
     );
-  }
-
-  dynamic getData() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? json = prefs.getString(widget.batchName);
-    if (json == null || json.isEmpty) return;
-    var jsodecode = jsonDecode(json) as List;
-    for (int i = 0; i < jsodecode.length; i++) {
-      print(jsodecode[i]['name']);
-      students.add(StudentDetails(
-          name: jsodecode[i]['name'],
-          mobile: jsodecode[i]['mobile'],
-          address: jsodecode[i]['address'],
-          roll: jsodecode[i]['roll'],
-          payment: jsodecode[i]['payment'],
-          batch: jsodecode[i]['studentBatch']));
-    }
-    // final String name = prefs.getString('name') ?? '';
-    // final String roll = prefs.getString('roll') ?? '';
-    // final String address = prefs.getString('address') ?? '';
-    // final String mobile = prefs.getString('mobile') ?? '';
-    // final String payment = prefs.getString('payment') ?? '';
-    // final String studentClass = prefs.getString('studentClass') ?? '';
-    // var stu = StudenDetails(
-    //     name: name,
-    //     mobile: mobile,
-    //     address: address,
-    //     roll: roll,
-    //     payment: payment,
-    //     studentClass: studentClass);
-    // if (name == '') return;
-    // students.add(stu);
-    setState(() {});
   }
 }

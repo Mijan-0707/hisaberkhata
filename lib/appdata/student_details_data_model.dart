@@ -1,14 +1,15 @@
 class StudentDetails {
   StudentDetails({
-    required this.name,
-    required this.mobile,
-    required this.address,
-    required this.roll,
-    required this.payment,
-    required this.batch,
+    this.name = '',
+    this.mobile = '',
+    this.address = '',
+    this.roll = '',
+    this.payment = '',
+    this.batch = '',
   });
 
   String name, mobile, address, roll, payment, batch;
+  List<String> paymentHistory = [];
 
   Map<String, dynamic> toJson() {
     return {
@@ -17,7 +18,8 @@ class StudentDetails {
       'mobile': mobile,
       'roll': roll,
       'payment': payment,
-      'studentBatch': batch
+      'studentBatch': batch,
+      'paymentHistory':paymentHistory
     };
   }
 
