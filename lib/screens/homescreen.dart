@@ -111,6 +111,93 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
               child: GestureDetector(
+                onLongPress: () {
+                  showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Container(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  deleteItem(context, i);
+                                },
+                                leading: const Icon(Icons.delete),
+                                title: const Text('Delete'),
+                              ),
+                              ListTile(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  var newBatchName = studentBatch[i];
+
+
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return Dialog(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                  decoration: InputDecoration(
+                                                      labelText:
+                                                          'Name of Batch',
+                                                      border: OutlineInputBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      16))),
+                                                  onChanged: (value) {
+                                                    newBatchName = value;
+                                                  },
+                                                ),
+                                              ),
+                                              TextButton(
+                                                  onPressed: () async {
+                                                    await appData
+                                                        .updateBatchName(
+                                                            studentBatch[i], newBatchName);
+                                                    Navigator.pop(context);
+                                                    appData.getBatchNames().then((value) {
+                                                      studentBatch = value;
+                                                      setState(() {});
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.blueAccent,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8)),
+                                                    child: const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(8.0),
+                                                      child: Text(
+                                                        'Save',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 16),
+                                                      ),
+                                                    ),
+                                                  ))
+                                            ],
+                                          ),
+                                        );
+                                      });
+                                },
+                                leading: const Icon(Icons.edit),
+                                title: const Text('Edit'),
+                              )
+                            ],
+                          ),
+                        );
+                      });
+                },
                 onTap: () async {
                   await Navigator.push(
                       context,
@@ -142,5 +229,34 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  void deleteItem(BuildContext context, int i) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Delete Batch'),
+            content: const Text(
+                'Are you sure you want to delete this batch?'),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('No')),
+              TextButton(
+                  onPressed: () async {
+                    await appData.deleteBatchName(studentBatch[i]);
+                    Navigator.pop(context);
+                    appData.getBatchNames().then((value) {
+                      studentBatch = value;
+                      setState(() {});
+                    });
+                  },
+                  child: const Text('Yes'))
+            ],
+          );
+        });
   }
 }
