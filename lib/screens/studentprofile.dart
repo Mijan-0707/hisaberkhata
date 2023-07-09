@@ -19,21 +19,21 @@ class StudentProfile extends StatefulWidget {
 
 class _StudentProfileState extends State<StudentProfile> {
   bool editPayment = false;
- StudentDetails details = StudentDetails();
+  StudentDetails details = StudentDetails();
 
-@override
+  @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    AppData().getStudentDetails(widget.batchName, widget.stuIndex).then((value) {
+    AppData()
+        .getStudentDetails(widget.batchName, widget.stuIndex)
+        .then((value) {
       print(value);
-       details = value;
-      setState(() {
-
-      });
+      details = value;
+      setState(() {});
     });
-
   }
+
   @override
   Widget build(BuildContext context) {
     print(details.name);
@@ -45,7 +45,8 @@ class _StudentProfileState extends State<StudentProfile> {
               context: context,
               builder: (context) {
                 return Dialog(
-                  child: Column(mainAxisSize: MainAxisSize.min,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -60,10 +61,7 @@ class _StudentProfileState extends State<StudentProfile> {
                         ),
                       ),
                       TextButton(
-                          onPressed: () async{
-
-
-
+                          onPressed: () async {
                             Navigator.pop(context);
                           },
                           child: const Text('Save'))
@@ -72,9 +70,11 @@ class _StudentProfileState extends State<StudentProfile> {
                 );
               },
             );
+            if (payedMonth == '' || payedMonth == null) return;
             details.paymentHistory.add(payedMonth);
             setState(() {});
-            AppData().updateStudentDetails(widget.batchName, widget.stuIndex, details);
+            AppData().updateStudentDetails(
+                widget.batchName, widget.stuIndex, details);
             print('object');
           },
           child: const Icon(Icons.add)),
@@ -91,8 +91,8 @@ class _StudentProfileState extends State<StudentProfile> {
                       if (choice == 'Edit') {
                         Future.delayed(
                           Duration(seconds: 0),
-                          () async{
-                           await showDialog(
+                          () async {
+                            await showDialog(
                               context: context,
                               builder: (context) {
                                 return Dialog(
@@ -203,18 +203,14 @@ class _StudentProfileState extends State<StudentProfile> {
                                     ],
                                   ),
                                 );
-
                               },
                             );
 
-
-                           AppData().updateStudentDetails(widget.batchName, widget.stuIndex, details);
-                            setState(() {
-
-                            });
+                            AppData().updateStudentDetails(
+                                widget.batchName, widget.stuIndex, details);
+                            setState(() {});
                           },
                         );
-
                       } else if (choice == 'Delete') {
                         // final SharedPreferences prefs =
                         //     await SharedPreferences.getInstance();
@@ -235,11 +231,9 @@ class _StudentProfileState extends State<StudentProfile> {
                     value: choice,
                     child: Text(choice));
               }).toList();
- },
+            },
           )
-
         ],
-
       ),
       body: ListView(
         children: [
@@ -277,11 +271,13 @@ class _StudentProfileState extends State<StudentProfile> {
                       // for (int i = 0; i < students.length; i++)
                       Text(
                         '${details.name}  - ${details.roll}',
-                        style: const TextStyle(fontSize: 20, color: Colors.white),
+                        style:
+                            const TextStyle(fontSize: 20, color: Colors.white),
                       ),
                       Text(
                         details.address,
-                        style: const TextStyle(fontSize: 20, color: Colors.white),
+                        style:
+                            const TextStyle(fontSize: 20, color: Colors.white),
                       ),
 
                       // Text(
@@ -299,8 +295,7 @@ class _StudentProfileState extends State<StudentProfile> {
                           Spacer(),
                           IconButton(
                             onPressed: () {
-                              launchUrl(
-                                  Uri.parse('tel:${details.mobile}'));
+                              launchUrl(Uri.parse('tel:${details.mobile}'));
                             },
                             icon: const Icon(
                               Icons.call,
@@ -309,8 +304,7 @@ class _StudentProfileState extends State<StudentProfile> {
                           ),
                           IconButton(
                               onPressed: () {
-                                launchUrl(
-                                    Uri.parse('sms:${details.mobile}'));
+                                launchUrl(Uri.parse('sms:${details.mobile}'));
                               },
                               icon: const Icon(
                                 Icons.sms_rounded,
@@ -320,7 +314,8 @@ class _StudentProfileState extends State<StudentProfile> {
                       ),
                       Text(
                         details.payment,
-                        style: const TextStyle(fontSize: 20, color: Colors.white),
+                        style:
+                            const TextStyle(fontSize: 20, color: Colors.white),
                       ),
                     ],
                   ),
@@ -332,7 +327,8 @@ class _StudentProfileState extends State<StudentProfile> {
             ListTile(
               title: Text(details.paymentHistory[i]),
               subtitle: Text('payed on ${DateTime.now()}'),
-              trailing: Row(mainAxisSize: MainAxisSize.min,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (editPayment == true)
                     IconButton(onPressed: () {}, icon: Icon(Icons.edit))

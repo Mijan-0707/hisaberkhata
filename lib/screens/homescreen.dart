@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/constants/constants.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -73,14 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             );
-            final SharedPreferences prefs =
-                await SharedPreferences.getInstance();
-            if (batch == '') return;
-            studentBatch.add(batch);
-            var studentBatchJsonE = jsonEncode(studentBatch);
-            // print(batchName);
-            final res = await prefs.setString(
-                PreferenceConstants.batchNameKey, studentBatchJsonE);
+            appData.createBatchName(batch, studentBatch);
             // await Future.delayed(Duration(seconds: 1));
             // await prefs.reload();
             // print([res, prefs.getString('123'), prefs.getKeys()]);
@@ -116,13 +111,18 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.only(left: 5, right: 5, top: 5),
               child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  await Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => StudentListPage(
                                 batchName: studentBatch[i],
                               )));
+
+                  appData.getBatchNames().then((value) {
+                    studentBatch = value;
+                    setState(() {});
+                  });
                 },
                 child: Container(
                   height: 60,

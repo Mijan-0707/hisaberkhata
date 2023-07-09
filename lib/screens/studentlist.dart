@@ -7,10 +7,12 @@ import 'package:hisaberkhata/screens/homescreen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class StudentListPage extends StatefulWidget {
-  const StudentListPage({super.key, required this.batchName});
+import '../constants/constants.dart';
 
-  final String batchName;
+class StudentListPage extends StatefulWidget {
+  StudentListPage({super.key, required this.batchName});
+
+  String batchName;
 
   @override
   State<StudentListPage> createState() => _StudentListPageState();
@@ -107,7 +109,7 @@ class _StudentListPageState extends State<StudentListPage> {
                       child: TextButton(
                         onPressed: () async {
                           final SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
+                          await SharedPreferences.getInstance();
                           if (name == '') {
                             ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Name is Empty')));
@@ -139,7 +141,7 @@ class _StudentListPageState extends State<StudentListPage> {
                             child: Text(
                               'Save',
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
+                              TextStyle(color: Colors.white, fontSize: 16),
                             ),
                           ),
                         ),
@@ -163,7 +165,124 @@ class _StudentListPageState extends State<StudentListPage> {
       ),
       appBar: AppBar(
           centerTitle: true,
-          title: const Text('Student List'),
+          title: Text(widget.batchName),
+          actions: [
+            PopupMenuButton(
+              itemBuilder: (c) {
+                return {'Edit', 'Delete'}.map((String choice) {
+                  return PopupMenuItem(
+                      onTap: () async {
+                        print(choice);
+                        if (choice == 'Edit') {
+                          Future.delayed(
+                            Duration(seconds: 0),
+                                () async {
+                              var newBatchName = '';
+                              await showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return Dialog(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'Edit Batch Name',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextField(
+                                            controller: TextEditingController(
+                                                text: widget.batchName),
+                                            decoration: InputDecoration(
+                                                labelText: 'Batch Name',
+                                                border: OutlineInputBorder(
+                                                    borderRadius:
+                                                    BorderRadius.circular(
+                                                        16))),
+                                            onChanged: (value) =>
+                                            newBatchName = value,
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                color: Colors.blueAccent,
+                                                borderRadius:
+                                                BorderRadius.circular(12)),
+                                            child: const Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Save',
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 16),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                              AppData().updateBatchName(
+                                  widget.batchName, newBatchName);
+                              widget.batchName = newBatchName;
+                              setState(() {});
+                            },
+                          );
+                        } else if (choice == 'Delete') {
+                          Future.delayed(Duration(seconds: 0), () async {
+                        final result =    await showDialog<bool>(
+                              context: context, builder: (context) {
+                              return Dialog(
+                                child:Column(mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('Do you Really want to delete'),
+                                    Row(mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        TextButton(onPressed: (){
+                                          AppData().deleteBatchName(widget.batchName);
+                                          Navigator.pop(context, true);
+                                        }, child:Text('Yes')),
+                                        TextButton(onPressed: (){
+                                          return;
+                                        }, child:Text('No'))
+                                      ],
+                                    ),
+                                  ],
+                                )
+                                ,);
+                            },);
+                          if(result == true) Navigator.pop(context);
+                          },);
+                          // setState(() {});
+                          // Future.delayed(
+                          //   Duration(seconds: 0),
+                          //       () {
+                          //     Navigator.pop(context, true);
+                          //   },
+                          // );
+                        } else if (choice == 'Edit Payment') {
+                          bool EditPayment = true;
+                        }
+                      },
+                      value: choice,
+                      child: Text(choice));
+                }).toList();
+              },
+            )
+          ],
           leading: IconButton(
               onPressed: () {
                 Navigator.pop(
@@ -180,7 +299,8 @@ class _StudentListPageState extends State<StudentListPage> {
                 await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) => StudentProfile(
+                        builder: ((context) =>
+                            StudentProfile(
                               batchName: widget.batchName,
                               stuIndex: i,
                             ))));
@@ -191,14 +311,17 @@ class _StudentListPageState extends State<StudentListPage> {
                   setState(() {});
                 });
               },
-              child: ListTile(
-                tileColor: Colors.tealAccent,
-                leading: Image.asset('assets/pic/pp.png'),
-                title: Text(students[i].name),
-                subtitle: Text(students[i].roll),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+                child: ListTile(
+                  tileColor: Colors.tealAccent,
+                  leading: Image.asset('assets/pic/pp.png'),
+                  title: Text(students[i].name),
+                  subtitle: Text(students[i].roll),
 
-                textColor: Colors.white,
-                // trailing: Checkbox(onChanged: (value) {}, value: true),
+                  textColor: Colors.white,
+                  // trailing: Checkbox(onChanged: (value) {}, value: true),
+                ),
               ),
             )
         ],
