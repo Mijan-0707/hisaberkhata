@@ -270,29 +270,28 @@ class _StudentProfileState extends State<StudentProfile> {
                     children: [
                       // for (int i = 0; i < students.length; i++)
                       Text(
-                        '${details.name}  - ${details.roll}',
+                        'Name: ${details.name}',
                         style:
                             const TextStyle(fontSize: 20, color: Colors.white),
                       ),
                       Text(
-                        details.address,
+                        'Roll: ${details.roll}',
                         style:
                             const TextStyle(fontSize: 20, color: Colors.white),
                       ),
-
-                      // Text(
-                      //   details.roll,
-                      //   style: const TextStyle(fontSize: 20, color: Colors.white),
-                      // ),
+                      Text(
+                        details.payment,
+                        style:
+                            const TextStyle(fontSize: 20, color: Colors.white),
+                      ),
                       Row(
-                        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Text(
                             details.mobile,
                             style: const TextStyle(
                                 fontSize: 20, color: Colors.white),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           IconButton(
                             onPressed: () {
                               launchUrl(Uri.parse('tel:${details.mobile}'));
@@ -313,7 +312,7 @@ class _StudentProfileState extends State<StudentProfile> {
                         ],
                       ),
                       Text(
-                        details.payment,
+                        details.address,
                         style:
                             const TextStyle(fontSize: 20, color: Colors.white),
                       ),
