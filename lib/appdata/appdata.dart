@@ -36,13 +36,20 @@ class AppData {
     return studentBatch;
   }
 
-  Future createBatchName(String batch, List studentBatch) async {
+  Future createBatchName(String batch) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     if (batch == '') return;
-    studentBatch.add(batch);
-    var studentBatchJsonE = jsonEncode(studentBatch);
-    // print(batchName);
+    final batches = await getBatchNames();
+    batches.add(batch);
+    var studentBatchJsonE = jsonEncode(batches);
     await prefs.setString(PreferenceConstants.batchNameKey, studentBatchJsonE);
+  }
+
+  Future addNewStudent(String batch, StudentDetails studentInfo) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final students = await getStudents(batch);
+    students.add(studentInfo);
+    await prefs.setString(batch, jsonEncode(students));
   }
 
   Future<void> updateBatchName(String old, String newName) async {
@@ -59,7 +66,7 @@ class AppData {
       }
       studentBatch.add(batchNames[i]);
     }
-     print('studentBatch: ${studentBatch}');
+    print('studentBatch: ${studentBatch}');
 
     var res = jsonEncode(studentBatch);
     print('res  ${res}, $newName');
@@ -73,7 +80,8 @@ class AppData {
     prefs.remove(old);
 // prefs.remove(old);
   }
-  Future<void>deleteBatchName(String batchName)async{
+
+  Future<void> deleteBatchName(String batchName) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
     if (batchNamesStr == null || batchNamesStr.isEmpty) return;
@@ -81,13 +89,13 @@ class AppData {
     final studentBatch = <String>[];
     for (int i = 0; i < batchNames.length; i++) {
       if (batchNames[i] != batchName) {
-       studentBatch.add(batchNames[i]);
+        studentBatch.add(batchNames[i]);
       }
     }
-   var res = jsonEncode(studentBatch);
+    var res = jsonEncode(studentBatch);
     prefs.setString(PreferenceConstants.batchNameKey, res);
     prefs.remove(batchName);
-print('deleted: $batchName, $res');
+    print('deleted: $batchName, $res');
   }
 
   Future<List<StudentDetails>> getStudents(String batch) async {

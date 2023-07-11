@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/screens/homescreen.dart';
+import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,131 +37,18 @@ class _StudentListPageState extends State<StudentListPage> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () async {
-          final result = await showDialog(
-            context: context,
-            builder: (context) {
-              String name = '',
-                  roll = '',
-                  mobile = '',
-                  address = '',
-                  payment = '';
-              return Dialog(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text(
-                        'Student Information',
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        decoration: InputDecoration(
-                            labelText: 'Name',
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16))),
-                        onChanged: (value) => name = value,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                          decoration: InputDecoration(
-                              labelText: 'Roll',
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16))),
-                          onChanged: (value) => roll = value),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                          decoration: InputDecoration(
-                              labelText: 'Mobile',
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16))),
-                          onChanged: (value) => mobile = value),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                          decoration: InputDecoration(
-                              labelText: 'Address',
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16))),
-                          onChanged: (value) => address = value),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                          decoration: InputDecoration(
-                              labelText: 'Payment',
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16))),
-                          onChanged: (value) => payment = value),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextButton(
-                        onPressed: () async {
-                          final SharedPreferences prefs =
-                          await SharedPreferences.getInstance();
-                          if (name == '') {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Name is Empty')));
-                            return;
-                          }
-                          final st = StudentDetails(
-                              name: name,
-                              roll: roll,
-                              mobile: mobile,
-                              address: address,
-                              payment: payment,
-                              batch: widget.batchName);
-
-                          // print(json);
-                          // await prefs.setString('name', name);
-                          // await prefs.setString('roll', roll);
-                          // await prefs.setString('mobile', mobile);
-                          // await prefs.setString('address', '21');
-                          // await prefs.setString('payment', '999');
-                          // await prefs.setString('studentClass', '1');
-                          Navigator.pop(context, st);
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                              color: Colors.blueAccent,
-                              borderRadius: BorderRadius.circular(12)),
-                          child: const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'Save',
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              );
-            },
-          );
+          final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    StudentInfoScreen(batchName: widget.batchName),
+              ));
 
           if (result == null) return;
           setState(() {
             students.add(result);
           });
-          final SharedPreferences prefs = await SharedPreferences.getInstance();
-          final json = jsonEncode(students);
-          await prefs.setString(widget.batchName, json);
-          // print(' =>${prefs.getString('json')}');
+          AppData().addNewStudent(widget.batchName, result);
         },
       ),
       appBar: AppBar(
@@ -176,7 +64,7 @@ class _StudentListPageState extends State<StudentListPage> {
                         if (choice == 'Edit') {
                           Future.delayed(
                             Duration(seconds: 0),
-                                () async {
+                            () async {
                               var newBatchName = '';
                               await showDialog(
                                 context: context,
@@ -204,10 +92,10 @@ class _StudentListPageState extends State<StudentListPage> {
                                                 labelText: 'Batch Name',
                                                 border: OutlineInputBorder(
                                                     borderRadius:
-                                                    BorderRadius.circular(
-                                                        16))),
+                                                        BorderRadius.circular(
+                                                            16))),
                                             onChanged: (value) =>
-                                            newBatchName = value,
+                                                newBatchName = value,
                                           ),
                                         ),
                                         TextButton(
@@ -218,7 +106,7 @@ class _StudentListPageState extends State<StudentListPage> {
                                             decoration: BoxDecoration(
                                                 color: Colors.blueAccent,
                                                 borderRadius:
-                                                BorderRadius.circular(12)),
+                                                    BorderRadius.circular(12)),
                                             child: const Padding(
                                               padding: EdgeInsets.all(8.0),
                                               child: Text(
@@ -242,30 +130,42 @@ class _StudentListPageState extends State<StudentListPage> {
                             },
                           );
                         } else if (choice == 'Delete') {
-                          Future.delayed(Duration(seconds: 0), () async {
-                        final result =    await showDialog<bool>(
-                              context: context, builder: (context) {
-                              return Dialog(
-                                child:Column(mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text('Do you Really want to delete'),
-                                    Row(mainAxisSize: MainAxisSize.min,
+                          Future.delayed(
+                            Duration(seconds: 0),
+                            () async {
+                              final result = await showDialog<bool>(
+                                context: context,
+                                builder: (context) {
+                                  return Dialog(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        TextButton(onPressed: (){
-                                          AppData().deleteBatchName(widget.batchName);
-                                          Navigator.pop(context, true);
-                                        }, child:Text('Yes')),
-                                        TextButton(onPressed: (){
-                                          return;
-                                        }, child:Text('No'))
+                                        Text('Do you Really want to delete'),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            TextButton(
+                                                onPressed: () {
+                                                  AppData().deleteBatchName(
+                                                      widget.batchName);
+                                                  Navigator.pop(context, true);
+                                                },
+                                                child: Text('Yes')),
+                                            TextButton(
+                                                onPressed: () {
+                                                  return;
+                                                },
+                                                child: Text('No'))
+                                          ],
+                                        ),
                                       ],
                                     ),
-                                  ],
-                                )
-                                ,);
-                            },);
-                          if(result == true) Navigator.pop(context);
-                          },);
+                                  );
+                                },
+                              );
+                              if (result == true) Navigator.pop(context);
+                            },
+                          );
                           // setState(() {});
                           // Future.delayed(
                           //   Duration(seconds: 0),
@@ -299,8 +199,7 @@ class _StudentListPageState extends State<StudentListPage> {
                 await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) =>
-                            StudentProfile(
+                        builder: ((context) => StudentProfile(
                               batchName: widget.batchName,
                               stuIndex: i,
                             ))));
@@ -316,8 +215,8 @@ class _StudentListPageState extends State<StudentListPage> {
                 child: ListTile(
                   tileColor: Colors.tealAccent,
                   leading: Image.asset('assets/pic/pp.png'),
-                  title: Text(students[i].name),
-                  subtitle: Text(students[i].roll),
+                  title: Text('Name: ${students[i].name}'),
+                  subtitle: Text('Roll: ${students[i].roll}'),
 
                   textColor: Colors.white,
                   // trailing: Checkbox(onChanged: (value) {}, value: true),
