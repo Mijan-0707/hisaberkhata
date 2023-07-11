@@ -1,0 +1,18 @@
+**issues**
+1. backup and restore feature 
+2. studentlist > edit > on cancel dialog it removes batch name
+3. creating student with enpty name
+4. 
+
+**improvements**
+1. input type for roll, mobile, payment
+2. custom widget for month list
+3. save TextButton  
+4. delete, edit student with three dot option  
+5. color combination 
+6. student profile icon taken from the name's 1st character 
+
+**features**
+1. tap and hold to delete payment entry
+2. a common list for students, search, group
+3. student attendance
