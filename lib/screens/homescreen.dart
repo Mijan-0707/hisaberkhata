@@ -33,53 +33,71 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            var batch = '';
-            await showDialog(
+            final res = await showModalBottomSheet<String?>(
               context: context,
               builder: (context) {
-                return Dialog(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          decoration: InputDecoration(
-                              labelText: 'Name of Batch',
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16))),
-                          onChanged: (value) {
-                            batch = value;
-                          },
+                var batch = '';
+                bool isInvalid = false;
+
+                return StatefulBuilder(builder: (context, setState2) {
+                  return Padding(
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            keyboardType: TextInputType.text,
+                            decoration: InputDecoration(
+                                labelText: 'Name of Batch11',
+                                errorText: isInvalid
+                                    ? 'The name already exists'
+                                    : null,
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16))),
+                            onChanged: (value) {
+                              batch = value;
+                            },
+                          ),
                         ),
-                      ),
-                      TextButton(
-                          onPressed: () async {
-                            Navigator.pop(context);
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                                color: Colors.blueAccent,
-                                borderRadius: BorderRadius.circular(8)),
-                            child: const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                'Save',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16),
+                        TextButton(
+                            onPressed: () async {
+                              isInvalid = false;
+                              for (int i = 0; i < studentBatch.length; i++) {
+                                if (batch == studentBatch[i]) {
+                                  isInvalid = true;
+                                  break;
+                                }
+                              }
+                              setState2(() {});
+                              if (!isInvalid) Navigator.pop(context, batch);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.blueAccent,
+                                  borderRadius: BorderRadius.circular(8)),
+                              child: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Save',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
                               ),
-                            ),
-                          ))
-                    ],
-                  ),
-                );
+                            ))
+                      ],
+                    ),
+                  );
+                });
               },
             );
-            appData.createBatchName(batch, studentBatch);
-            // await Future.delayed(Duration(seconds: 1));
-            // await prefs.reload();
-            // print([res, prefs.getString('123'), prefs.getKeys()]);
-            setState(() {});
+            if (res != null && res.isNotEmpty) {
+              studentBatch.add(res);
+              appData.createBatchName(res);
+              setState(() {});
+            }
           },
           backgroundColor: const Color(0xff536DFE),
           child: const Icon(Icons.add)),
@@ -131,8 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onTap: () {
                                   Navigator.pop(context);
                                   var newBatchName = studentBatch[i];
-
-
                                   showDialog(
                                       context: context,
                                       builder: (context) {
@@ -145,13 +161,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     const EdgeInsets.all(8.0),
                                                 child: TextField(
                                                   decoration: InputDecoration(
-                                                      labelText:
-                                                          'Name of Batch',
-                                                      border: OutlineInputBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      16))),
+                                                    labelText: 'Name of Batch',
+                                                    border: OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              16),
+                                                    ),
+                                                  ),
                                                   onChanged: (value) {
                                                     newBatchName = value;
                                                   },
@@ -161,16 +177,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   onPressed: () async {
                                                     await appData
                                                         .updateBatchName(
-                                                            studentBatch[i], newBatchName);
+                                                            studentBatch[i],
+                                                            newBatchName);
                                                     Navigator.pop(context);
-                                                    appData.getBatchNames().then((value) {
+                                                    appData
+                                                        .getBatchNames()
+                                                        .then((value) {
                                                       studentBatch = value;
                                                       setState(() {});
                                                     });
                                                   },
                                                   child: Container(
                                                     decoration: BoxDecoration(
-                                                        color: Colors.blueAccent,
+                                                        color:
+                                                            Colors.blueAccent,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(8)),
@@ -237,8 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) {
           return AlertDialog(
             title: const Text('Delete Batch'),
-            content: const Text(
-                'Are you sure you want to delete this batch?'),
+            content: const Text('Are you sure you want to delete this batch?'),
             actions: [
               TextButton(
                   onPressed: () {
