@@ -67,16 +67,16 @@ class AppData {
       }
       studentBatch.add(batchNames[i]);
     }
-    print('studentBatch: ${studentBatch}');
+    // print('studentBatch: ${studentBatch}');
 
     var res = jsonEncode(studentBatch);
-    print('res  ${res}, $newName');
+    // print('res  ${res}, $newName');
     prefs.setString(PreferenceConstants.batchNameKey, res);
     // find the old item and replace with the new one
 
     final oldBatchnamesJson = prefs.getString(old);
     if (oldBatchnamesJson == null) return;
-    print('new name : ${[old, newName]}');
+    // print('new name : ${[old, newName]}');
     prefs.setString(newName, oldBatchnamesJson);
     prefs.remove(old);
 // prefs.remove(old);
@@ -192,6 +192,24 @@ class AppData {
     if (studentsListStr == null || studentsListStr.isEmpty) return;
     List<dynamic> studentsList = jsonDecode(studentsListStr);
     studentsList[index] = details.toJson();
+    await prefs.setString(batchName, jsonEncode(studentsList));
+  }
+
+  void savePaymentHistory(StudentDetails details) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final paymentHistoryJson = jsonEncode(details.paymentHistory);
+    prefs.setString(details.batch + details.name, paymentHistoryJson);
+  }
+
+  void deleteStudentDetails(String batchName, int studentIndex) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final studentsListStr = prefs.getString(batchName);
+    if (studentsListStr == null || studentsListStr.isEmpty) return;
+    List<dynamic> studentsList = jsonDecode(studentsListStr);
+    print(studentIndex);
+    print(studentsList);
+    studentsList.removeAt(studentIndex);
+    print(studentsList);
     await prefs.setString(batchName, jsonEncode(studentsList));
   }
 }

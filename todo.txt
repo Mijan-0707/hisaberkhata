@@ -2,8 +2,8 @@
 1. backup and restore feature 
 [solved] 2. studentlist > edit > on cancel dialog it removes batch name
  [solved] 3. creating student with enpty name 
-4. students id is not deleting
-
+[solved] 4. students id is not deleting
+5. batch name can't be same
 
 **improvements**
 1. input type for roll, mobile, payment [added]

@@ -60,20 +60,30 @@ class _StudentProfileState extends State<StudentProfile> {
                 return ListView(
                   children: [
                     for (int i = 0; i < payableMonths.length; i++)
-                      Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Container(
-                            alignment: Alignment.center,
-                            height: 40,
-                            decoration: BoxDecoration(
-                                color: Colors.blue,
-                                borderRadius: BorderRadius.circular(8)),
-                            child: Text(
-                              payableMonths[i],
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                          )),
+                      GestureDetector(
+                        onTap: () async {
+                          var month = payableMonths[i];
+                          details.paymentHistory.add(month);
+                          Navigator.pop(context);
+                          AppData().updateStudentDetails(
+                              details.batch, widget.stuIndex, details);
+                          setState(() {});
+                        },
+                        child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                  color: Colors.blue,
+                                  borderRadius: BorderRadius.circular(8)),
+                              child: Text(
+                                payableMonths[i],
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            )),
+                      ),
                   ],
                 );
               },
@@ -220,11 +230,8 @@ class _StudentProfileState extends State<StudentProfile> {
                           },
                         );
                       } else if (choice == 'Delete') {
-                        // final SharedPreferences prefs =
-                        //     await SharedPreferences.getInstance();
-                        // widget.studentlist.remove(details);
-                        // var json = jsonEncode(widget.studentlist);
-                        // await prefs.setString('json', json);
+                        AppData().deleteStudentDetails(
+                            widget.batchName, widget.stuIndex);
                         setState(() {});
                         Future.delayed(
                           Duration(seconds: 0),

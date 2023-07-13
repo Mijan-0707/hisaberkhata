@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: TextField(
                             keyboardType: TextInputType.text,
                             decoration: InputDecoration(
-                                labelText: 'Name of Batch11',
+                                labelText: 'Name of Batch',
                                 errorText: isInvalid
                                     ? 'The name already exists'
                                     : null,
