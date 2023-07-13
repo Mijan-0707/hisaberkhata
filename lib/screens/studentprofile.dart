@@ -23,7 +23,6 @@ class _StudentProfileState extends State<StudentProfile> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     AppData()
         .getStudentDetails(widget.batchName, widget.stuIndex)
@@ -40,33 +39,42 @@ class _StudentProfileState extends State<StudentProfile> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
+            List<String> payableMonths = [
+              'January',
+              'February',
+              'March',
+              'April',
+              'May',
+              'June',
+              'July',
+              'August',
+              'September',
+              'October',
+              'November',
+              'December'
+            ];
             String payedMonth = '';
-            await showDialog(
+            await showModalBottomSheet(
               context: context,
               builder: (context) {
-                return Dialog(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+                return ListView(
+                  children: [
+                    for (int i = 0; i < payableMonths.length; i++)
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          decoration: InputDecoration(
-                              labelText: 'Payment',
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16))),
-                          onChanged: (value) {
-                            payedMonth = value;
-                          },
-                        ),
-                      ),
-                      TextButton(
-                          onPressed: () async {
-                            Navigator.pop(context);
-                          },
-                          child: const Text('Save'))
-                    ],
-                  ),
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            alignment: Alignment.center,
+                            height: 40,
+                            decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(8)),
+                            child: Text(
+                              payableMonths[i],
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          )),
+                  ],
                 );
               },
             );
@@ -330,7 +338,7 @@ class _StudentProfileState extends State<StudentProfile> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (editPayment == true)
-                    IconButton(onPressed: () {}, icon: Icon(Icons.edit))
+                    IconButton(onPressed: () {}, icon: const Icon(Icons.edit))
                 ],
               ),
             )
