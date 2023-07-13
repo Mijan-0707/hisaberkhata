@@ -55,12 +55,13 @@ class AppData {
   Future<void> updateBatchName(String old, String newName) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
-    print('batchname: ${batchNamesStr}');
+    // print('batchname: ${batchNamesStr}');
     // list of batch names
     if (batchNamesStr == null || batchNamesStr.isEmpty) return;
     List<dynamic> batchNames = jsonDecode(batchNamesStr);
     final studentBatch = <String>[];
     for (int i = 0; i < batchNames.length; i++) {
+      if (newName == '') return;
       if (batchNames[i] == old) {
         batchNames[i] = newName;
       }

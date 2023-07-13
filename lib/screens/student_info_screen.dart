@@ -14,6 +14,7 @@ class StudentInfoScreen extends StatefulWidget {
 
 class _StudentInfoScreenState extends State<StudentInfoScreen> {
   String name = '', roll = '', mobile = '', address = '', payment = '';
+  bool isInvalid = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +36,9 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
+              keyboardType: TextInputType.name,
               decoration: InputDecoration(
+                  errorText: isInvalid ? 'Please enter the Student name' : null,
                   labelText: 'Name',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16))),
@@ -45,6 +48,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                     labelText: 'Roll',
                     border: OutlineInputBorder(
@@ -54,6 +58,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
+                keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                     labelText: 'Mobile',
                     border: OutlineInputBorder(
@@ -63,6 +68,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
+                keyboardType: TextInputType.streetAddress,
                 decoration: InputDecoration(
                     labelText: 'Address',
                     border: OutlineInputBorder(
@@ -72,40 +78,46 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                     labelText: 'Payment',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16))),
                 onChanged: (value) => payment = value),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextButton(
-              onPressed: () async {
-                var data = StudentDetails(
-                  address: address,
-                  batch: widget.batchName,
-                  mobile: mobile,
-                  name: name,
-                  payment: payment,
-                  roll: roll,
-                );
+          TextButton(
+            onPressed: () async {
+              var data = StudentDetails(
+                address: address,
+                batch: widget.batchName,
+                mobile: mobile,
+                name: name,
+                payment: payment,
+                roll: roll,
+              );
+              if (data.name != '') {
                 Navigator.pop(context, data);
-                if (name == '') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Name is Empty')));
-                  return;
-                }
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                    color: Colors.blueAccent,
-                    borderRadius: BorderRadius.circular(12)),
-                child: const Padding(
-                  padding: EdgeInsets.all(8.0),
+              }
+              if (name == '') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Name is Empty')));
+                isInvalid = true;
+                setState(() {});
+                return;
+              }
+            },
+            child: Container(
+              height: 40,
+              width: MediaQuery.of(context).size.width - 10,
+              decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(12)),
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Center(
                   child: Text(
                     'Save',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                 ),
               ),

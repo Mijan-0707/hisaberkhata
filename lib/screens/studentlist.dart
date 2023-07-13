@@ -126,6 +126,7 @@ class _StudentListPageState extends State<StudentListPage> {
                               AppData().updateBatchName(
                                   widget.batchName, newBatchName);
                               widget.batchName = newBatchName;
+                              if (newBatchName == '') return;
                               setState(() {});
                             },
                           );
@@ -150,12 +151,12 @@ class _StudentListPageState extends State<StudentListPage> {
                                                       widget.batchName);
                                                   Navigator.pop(context, true);
                                                 },
-                                                child: Text('Yes')),
+                                                child: const Text('Yes')),
                                             TextButton(
                                                 onPressed: () {
                                                   return;
                                                 },
-                                                child: Text('No'))
+                                                child: const Text('No'))
                                           ],
                                         ),
                                       ],
