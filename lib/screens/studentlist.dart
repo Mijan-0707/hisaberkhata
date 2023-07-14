@@ -9,6 +9,7 @@ import 'package:hisaberkhata/screens/studentprofile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/constants.dart';
+import '../widgets/profileicon.dart';
 
 class StudentListPage extends StatefulWidget {
   StudentListPage({super.key, required this.batchName});
@@ -235,7 +236,7 @@ class _StudentListPageState extends State<StudentListPage> {
                 padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
                 child: ListTile(
                   tileColor: Colors.tealAccent,
-                  leading: Image.asset('assets/pic/pp.png'),
+                  leading: ProfileIconCreator(name: students[i].name),
                   title: Text('Name: ${students[i].name}'),
                   subtitle: Text('Roll: ${students[i].roll}'),
                   trailing: PopupMenuButton(

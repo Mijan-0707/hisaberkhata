@@ -5,6 +5,7 @@ import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hisaberkhata/widgets/profileicon.dart';
 
 class StudentProfile extends StatefulWidget {
   const StudentProfile(
@@ -264,23 +265,8 @@ class _StudentProfileState extends State<StudentProfile> {
             child: Row(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Container(
-                    height: 120,
-                    width: 120,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: Image.asset(
-                      'assets/pic/pp.png',
-                      fit: BoxFit.fill,
-                      height: 80,
-                      width: 80,
-                    ),
-                  ),
-                ),
+                    padding: const EdgeInsets.only(left: 8),
+                    child: ProfileIconCreator(name: details.name, size: 120)),
                 const SizedBox(
                   width: 20,
                 ),

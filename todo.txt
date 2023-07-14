@@ -6,12 +6,12 @@
 [solved] 5. batch name can't be same while editing
 
 **improvements**
-1. input type for roll, mobile, payment [added]
-2. custom widget for month list [added]
+[solved] 1. input type for roll, mobile, payment 
+[solved] 2. custom widget for month list 
 3. save TextButton  [size changed]
-4. delete, edit student with three dot option  
+[solved] 4. delete, edit student with three dot option  
 5. color combination 
-6. student profile icon taken from the name's 1st character 
+[solved] 6. student profile icon taken from the name's 1st character 
 7.batch name validity check while  typing.
 
 
