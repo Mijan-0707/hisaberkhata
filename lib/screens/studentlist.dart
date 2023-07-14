@@ -196,15 +196,6 @@ class _StudentListPageState extends State<StudentListPage> {
                               if (result == true) Navigator.pop(context);
                             },
                           );
-                          // setState(() {});
-                          // Future.delayed(
-                          //   Duration(seconds: 0),
-                          //       () {
-                          //     Navigator.pop(context, true);
-                          //   },
-                          // );
-                        } else if (choice == 'Edit Payment') {
-                          bool EditPayment = true;
                         }
                       },
                       value: choice,
@@ -247,6 +238,190 @@ class _StudentListPageState extends State<StudentListPage> {
                   leading: Image.asset('assets/pic/pp.png'),
                   title: Text('Name: ${students[i].name}'),
                   subtitle: Text('Roll: ${students[i].roll}'),
+                  trailing: PopupMenuButton(
+                    itemBuilder: (c) {
+                      return {'Edit', 'Delete'}.map((String choice) {
+                        return PopupMenuItem(
+                            onTap: () async {
+                              // print(choice);
+                              if (choice == 'Edit') {
+                                Future.delayed(
+                                  Duration(seconds: 0),
+                                  () async {
+                                    await showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return Dialog(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: Text(
+                                                  'Edit Student Information',
+                                                  style: TextStyle(
+                                                      fontSize: 16,
+                                                      color: Colors.blue,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                  keyboardType:
+                                                      TextInputType.name,
+                                                  controller:
+                                                      TextEditingController(
+                                                          text:
+                                                              students[i].name),
+                                                  decoration: InputDecoration(
+                                                      labelText: 'Name',
+                                                      border:
+                                                          OutlineInputBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          16))),
+                                                  onChanged: (value) =>
+                                                      students[i].name = value,
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: students[i]
+                                                                .roll),
+                                                    decoration: InputDecoration(
+                                                        labelText: 'Roll',
+                                                        border: OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        16))),
+                                                    onChanged: (value) =>
+                                                        students[i].roll =
+                                                            value),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                    keyboardType:
+                                                        TextInputType.phone,
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: students[i]
+                                                                .mobile),
+                                                    decoration: InputDecoration(
+                                                        labelText: 'Mobile',
+                                                        border: OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        16))),
+                                                    onChanged: (value) =>
+                                                        students[i].mobile =
+                                                            value),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                    keyboardType: TextInputType
+                                                        .streetAddress,
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: students[i]
+                                                                .address),
+                                                    decoration: InputDecoration(
+                                                        labelText: 'Address',
+                                                        border: OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        16))),
+                                                    onChanged: (value) =>
+                                                        students[i].address =
+                                                            value),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: TextField(
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: students[i]
+                                                                .address),
+                                                    decoration: InputDecoration(
+                                                        labelText: 'Payment',
+                                                        border: OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        16))),
+                                                    onChanged: (value) =>
+                                                        students[i].payment =
+                                                            value),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.blueAccent,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12)),
+                                                  child: const Padding(
+                                                    padding:
+                                                        EdgeInsets.all(8.0),
+                                                    child: Text(
+                                                      'Save',
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 16),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+
+                                    AppData().updateStudentDetails(
+                                        widget.batchName, i, students[i]);
+                                    setState(() {});
+                                  },
+                                );
+                              } else if (choice == 'Delete') {
+                                AppData()
+                                    .deleteStudentDetails(widget.batchName, i);
+                                setState(() {});
+                                Future.delayed(
+                                  Duration(seconds: 0),
+                                  () {
+                                    Navigator.pop(context, true);
+                                  },
+                                );
+                              }
+                            },
+                            value: choice,
+                            child: Text(choice));
+                      }).toList();
+                    },
+                  ),
 
                   textColor: Colors.white,
                   // trailing: Checkbox(onChanged: (value) {}, value: true),

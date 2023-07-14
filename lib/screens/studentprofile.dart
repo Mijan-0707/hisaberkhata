@@ -130,6 +130,7 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                          keyboardType: TextInputType.name,
                                           controller: TextEditingController(
                                               text: details.name),
                                           decoration: InputDecoration(
@@ -145,6 +146,7 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            keyboardType: TextInputType.number,
                                             controller: TextEditingController(
                                                 text: details.roll),
                                             decoration: InputDecoration(
@@ -159,6 +161,7 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            keyboardType: TextInputType.phone,
                                             controller: TextEditingController(
                                                 text: details.mobile),
                                             decoration: InputDecoration(
@@ -173,6 +176,8 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            keyboardType:
+                                                TextInputType.streetAddress,
                                             controller: TextEditingController(
                                                 text: details.address),
                                             decoration: InputDecoration(
@@ -187,6 +192,7 @@ class _StudentProfileState extends State<StudentProfile> {
                                       Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextField(
+                                            keyboardType: TextInputType.number,
                                             controller: TextEditingController(
                                                 text: details.address),
                                             decoration: InputDecoration(
