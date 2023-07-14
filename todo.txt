@@ -3,15 +3,17 @@
 [solved] 2. studentlist > edit > on cancel dialog it removes batch name
  [solved] 3. creating student with enpty name 
 [solved] 4. students id is not deleting
-5. batch name can't be same
+[solved] 5. batch name can't be same while editing
 
 **improvements**
 1. input type for roll, mobile, payment [added]
-2. custom widget for month list 
+2. custom widget for month list [added]
 3. save TextButton  [size changed]
 4. delete, edit student with three dot option  
 5. color combination 
 6. student profile icon taken from the name's 1st character 
+7.batch name validity check while  typing.
+
 
 **features**
 1. tap and hold to delete payment entry

@@ -4,8 +4,9 @@ import 'package:hisaberkhata/screens/studentlist.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
 
 main() {
-  runApp(const MaterialApp(
+  runApp(MaterialApp(
+    theme: ThemeData.dark(),
     debugShowCheckedModeBanner: false,
-    home: HomeScreen(),
+    home: const HomeScreen(),
   ));
 }

@@ -65,9 +65,12 @@ class _StudentListPageState extends State<StudentListPage> {
                           Future.delayed(
                             Duration(seconds: 0),
                             () async {
-                              var newBatchName = '';
-                              await showDialog(
+                              String newBatchName = '';
+                              final ValueNotifier<bool> _isInvalid =
+                                  ValueNotifier<bool>(false);
+                              var res = await showDialog(
                                 context: context,
+                                barrierDismissible: false,
                                 builder: (context) {
                                   return Dialog(
                                     child: Column(
@@ -85,22 +88,48 @@ class _StudentListPageState extends State<StudentListPage> {
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: TextField(
-                                            controller: TextEditingController(
-                                                text: widget.batchName),
-                                            decoration: InputDecoration(
-                                                labelText: 'Batch Name',
-                                                border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16))),
-                                            onChanged: (value) =>
-                                                newBatchName = value,
-                                          ),
+                                          child: ValueListenableBuilder(
+                                              valueListenable: _isInvalid,
+                                              builder: (BuildContext context,
+                                                  bool isInvalid,
+                                                  Widget? child) {
+                                                return TextField(
+                                                    controller:
+                                                        TextEditingController(
+                                                            text: widget
+                                                                .batchName),
+                                                    decoration: InputDecoration(
+                                                        labelText: 'Batch Name',
+                                                        errorText: isInvalid
+                                                            ? 'The name already exists'
+                                                            : null,
+                                                        border: OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        16))),
+                                                    onChanged: (value) {
+                                                      newBatchName = value;
+                                                    });
+                                              }),
                                         ),
                                         TextButton(
                                           onPressed: () async {
-                                            Navigator.pop(context);
+                                            final batchNames =
+                                                await AppData().getBatchNames();
+                                            _isInvalid.value = false;
+                                            for (int i = 0;
+                                                i < batchNames.length;
+                                                i++) {
+                                              if (newBatchName ==
+                                                  batchNames[i]) {
+                                                _isInvalid.value = true;
+                                                break;
+                                              }
+                                            }
+
+                                            if (!_isInvalid.value)
+                                              Navigator.pop(context);
                                           },
                                           child: Container(
                                             decoration: BoxDecoration(
