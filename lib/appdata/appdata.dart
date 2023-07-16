@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/constants/constants.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppData {
+  ValueNotifier<List<String>> studentBatch = ValueNotifier([]);
   Future<File?> get _localFile async {
     var status = await Permission.storage.status;
     if (!status.isGranted) await Permission.storage.request();
@@ -33,12 +35,18 @@ class AppData {
     for (int i = 0; i < batchNames.length; i++) {
       studentBatch.add(batchNames[i]);
     }
+
+    this.studentBatch.value = studentBatch;
     return studentBatch;
   }
 
   Future createBatchName(String batch) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    batch = batch.trim();
     if (batch == '') return;
+    studentBatch.value.add(batch);
+    studentBatch.notifyListeners();
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     final batches = await getBatchNames();
     batches.add(batch);
     var studentBatchJsonE = jsonEncode(batches);
@@ -66,6 +74,7 @@ class AppData {
         batchNames[i] = newName;
       }
       studentBatch.add(batchNames[i]);
+      this.studentBatch.value = studentBatch;
     }
     // print('studentBatch: ${studentBatch}');
 
@@ -96,6 +105,8 @@ class AppData {
     var res = jsonEncode(studentBatch);
     prefs.setString(PreferenceConstants.batchNameKey, res);
     prefs.remove(batchName);
+    this.studentBatch.value = studentBatch;
+
     print('deleted: $batchName, $res');
   }
 

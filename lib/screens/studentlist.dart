@@ -207,10 +207,8 @@ class _StudentListPageState extends State<StudentListPage> {
           ],
           leading: IconButton(
               onPressed: () {
-                Navigator.pop(
-                    context,
-                    MaterialPageRoute(
-                        builder: ((context) => const HomeScreen())));
+                Navigator.pop(context,
+                    MaterialPageRoute(builder: ((context) => HomeScreen())));
               },
               icon: const Icon(Icons.arrow_back))),
       body: ListView(
