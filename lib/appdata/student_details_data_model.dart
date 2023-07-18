@@ -19,7 +19,7 @@ class StudentDetails {
       'roll': roll,
       'payment': payment,
       'studentBatch': batch,
-      'paymentHistory':paymentHistory
+      'paymentHistory': paymentHistory
     };
   }
 

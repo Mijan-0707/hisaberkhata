@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AppData {
   ValueNotifier<List<String>> studentBatch = ValueNotifier([]);
+  ValueNotifier<List<StudentDetails>> students = ValueNotifier([]);
   Future<File?> get _localFile async {
     var status = await Permission.storage.status;
     if (!status.isGranted) await Permission.storage.request();
@@ -55,8 +56,11 @@ class AppData {
 
   Future addNewStudent(String batch, StudentDetails studentInfo) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (studentInfo == null) return;
+    AppData().students.value.add(studentInfo);
     final students = await getStudents(batch);
     students.add(studentInfo);
+    this.students.value = students;
     await prefs.setString(batch, jsonEncode(students));
   }
 
@@ -140,6 +144,9 @@ class AppData {
       }
       students.add(s);
     }
+    this.students.value = students;
+    print(batch);
+    print(students);
     return students;
   }
 
@@ -203,6 +210,8 @@ class AppData {
     if (studentsListStr == null || studentsListStr.isEmpty) return;
     List<dynamic> studentsList = jsonDecode(studentsListStr);
     studentsList[index] = details.toJson();
+    students.value[index] = details;
+    students.notifyListeners();
     await prefs.setString(batchName, jsonEncode(studentsList));
   }
 
@@ -217,10 +226,12 @@ class AppData {
     final studentsListStr = prefs.getString(batchName);
     if (studentsListStr == null || studentsListStr.isEmpty) return;
     List<dynamic> studentsList = jsonDecode(studentsListStr);
-    print(studentIndex);
-    print(studentsList);
+    // print(studentIndex);
+    // print(studentsList);
     studentsList.removeAt(studentIndex);
-    print(studentsList);
+    students.value.removeAt(studentIndex);
+    students.notifyListeners();
+    // print(studentsList);
     await prefs.setString(batchName, jsonEncode(studentsList));
   }
 }

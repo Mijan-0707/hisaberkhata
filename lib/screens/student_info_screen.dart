@@ -5,16 +5,24 @@ import '../appdata/student_details_data_model.dart';
 
 class StudentInfoScreen extends StatefulWidget {
   var batchName;
+  final StudentDetails details;
+  // StudentInfoScreen({
+  //   super.key,
+  //   required this.batchName,
+  //   StudentDetails? oldDetails,
+  // }) : details = oldDetails ?? StudentDetails();
 
-  StudentInfoScreen({super.key, required this.batchName});
+  StudentInfoScreen({super.key, required this.batchName})
+      : details = StudentDetails();
+  StudentInfoScreen.update(
+      {super.key, required this.batchName, required this.details});
 
   @override
   State<StudentInfoScreen> createState() => _StudentInfoScreenState();
 }
 
 class _StudentInfoScreenState extends State<StudentInfoScreen> {
-  String name = '', roll = '', mobile = '', address = '', payment = '';
-  bool isInvalid = false;
+  ValueNotifier<bool> isInvalid = ValueNotifier(false);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,15 +43,19 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              keyboardType: TextInputType.name,
-              decoration: InputDecoration(
-                  errorText: isInvalid ? 'Please enter the Student name' : null,
-                  labelText: 'Name',
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16))),
-              onChanged: (value) => name = value,
-            ),
+            child: ValueListenableBuilder(
+                valueListenable: isInvalid,
+                builder: (context, v, _) {
+                  return TextField(
+                    keyboardType: TextInputType.name,
+                    decoration: InputDecoration(
+                        errorText: v ? 'Please enter the Student name' : null,
+                        labelText: 'Name',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16))),
+                    onChanged: (value) => widget.details.name = value,
+                  );
+                }),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -53,7 +65,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
                     labelText: 'Roll',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16))),
-                onChanged: (value) => roll = value),
+                onChanged: (value) => widget.details.roll = value),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -63,7 +75,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
                     labelText: 'Mobile',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16))),
-                onChanged: (value) => mobile = value),
+                onChanged: (value) => widget.details.mobile = value),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -73,7 +85,7 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
                     labelText: 'Address',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16))),
-                onChanged: (value) => address = value),
+                onChanged: (value) => widget.details.address = value),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -83,27 +95,16 @@ class _StudentInfoScreenState extends State<StudentInfoScreen> {
                     labelText: 'Payment',
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16))),
-                onChanged: (value) => payment = value),
+                onChanged: (value) => widget.details.payment = value),
           ),
           TextButton(
             onPressed: () async {
-              var data = StudentDetails(
-                address: address,
-                batch: widget.batchName,
-                mobile: mobile,
-                name: name,
-                payment: payment,
-                roll: roll,
-              );
-              if (data.name != '') {
-                Navigator.pop(context, data);
-              }
-              if (name == '') {
+              if (widget.details.name != '') {
+                Navigator.pop(context, widget.details);
+              } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Name is Empty')));
-                isInvalid = true;
-                setState(() {});
-                return;
+                isInvalid.value = true;
               }
             },
             child: Container(
