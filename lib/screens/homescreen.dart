@@ -1,26 +1,11 @@
-// import 'dart:convert';
-// import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
-// import 'package:hisaberkhata/constants/constants.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
-// import 'package:path_provider/path_provider.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
+
+final appData = AppData();
 
 class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
-
-  final appData = AppData();
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   appData.getBatchNames().then((value) {
-  //     studentBatch = value;
-  //     setState(() {});
-  //   });
-  // }
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +31,6 @@ class HomeScreen extends StatelessWidget {
                     appData.createBackup();
                   } else if (choice == 'Restore') {
                     await appData.restoreData();
-                    // setState(() {});
                   }
                 },
                 child: Text(choice),
@@ -133,10 +117,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
     if (res != null && res.isNotEmpty) {
-      // appData.studentBatch.value.add(res);
       appData.createBatchName(res);
-      // appData.studentBatch.notifyListeners();
-      // setState(() {});
     }
   }
 
@@ -145,89 +126,77 @@ class HomeScreen extends StatelessWidget {
         context,
         MaterialPageRoute(
             builder: (context) => StudentListPage(batchName: name)));
-
-    // appData.getBatchNames().then((value) {
-    //   appData.studentBatch.value = value;
-    //   setState(() {});
-    // });
   }
 
   Future<dynamic> onLongPressBatchName(BuildContext context, String name) {
     return showModalBottomSheet(
         context: context,
         builder: (context) {
-          return Container(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  onTap: () {
-                    Navigator.pop(context);
-                    deleteItem(context, name);
-                  },
-                  leading: const Icon(Icons.delete),
-                  title: const Text('Delete'),
-                ),
-                ListTile(
-                  onTap: () {
-                    Navigator.pop(context);
-                    var newBatchName = name;
-                    showDialog(
-                        context: context,
-                        builder: (context) {
-                          return Dialog(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    decoration: InputDecoration(
-                                      labelText: 'Name of Batch',
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                onTap: () {
+                  Navigator.pop(context);
+                  deleteItem(context, name);
+                },
+                leading: const Icon(Icons.delete),
+                title: const Text('Delete'),
+              ),
+              ListTile(
+                onTap: () {
+                  Navigator.pop(context);
+                  var newBatchName = name;
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return Dialog(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    labelText: 'Name of Batch',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    newBatchName = value;
+                                  },
+                                ),
+                              ),
+                              TextButton(
+                                  onPressed: () async {
+                                    await appData.updateBatchName(
+                                        name, newBatchName);
+                                    // ignore: use_build_context_synchronously
+                                    Navigator.pop(context);
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.blueAccent,
+                                        borderRadius: BorderRadius.circular(8)),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Save',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 16),
                                       ),
                                     ),
-                                    onChanged: (value) {
-                                      newBatchName = value;
-                                    },
-                                  ),
-                                ),
-                                TextButton(
-                                    onPressed: () async {
-                                      await appData.updateBatchName(
-                                          name, newBatchName);
-                                      Navigator.pop(context);
-                                      // appData.getBatchNames().then((value) {
-                                      //   appData.studentBatch.value = value;
-                                      //   setState(() {});
-                                      // });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.blueAccent,
-                                          borderRadius:
-                                              BorderRadius.circular(8)),
-                                      child: const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Save',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16),
-                                        ),
-                                      ),
-                                    ))
-                              ],
-                            ),
-                          );
-                        });
-                  },
-                  leading: const Icon(Icons.edit),
-                  title: const Text('Edit'),
-                )
-              ],
-            ),
+                                  ))
+                            ],
+                          ),
+                        );
+                      });
+                },
+                leading: const Icon(Icons.edit),
+                title: const Text('Edit'),
+              )
+            ],
           );
         });
   }

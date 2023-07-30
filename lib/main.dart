@@ -7,6 +7,6 @@ main() {
   runApp(MaterialApp(
     theme: ThemeData.dark(),
     debugShowCheckedModeBanner: false,
-    home: HomeScreen(),
+    home: const HomeScreen(),
   ));
 }

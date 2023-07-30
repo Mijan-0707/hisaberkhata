@@ -1,99 +1,88 @@
-import 'dart:convert';
+// import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:hisaberkhata/appdata/appdata.dart';
+// import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hisaberkhata/screens/student_info_screen.dart';
+// import 'package:hisaberkhata/screens/studentlist.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hisaberkhata/widgets/profileicon.dart';
+import 'package:hisaberkhata/screens/homescreen.dart';
 
-class StudentProfile extends StatefulWidget {
-  const StudentProfile(
-      {super.key, required this.batchName, required this.stuIndex});
+class StudentProfile extends StatelessWidget {
+  StudentProfile({super.key, required this.batchName, required this.stuIndex});
 
   final String batchName;
   final int stuIndex;
-
-  @override
-  State<StudentProfile> createState() => _StudentProfileState();
-}
-
-class _StudentProfileState extends State<StudentProfile> {
   bool editPayment = false;
-  StudentDetails details = StudentDetails();
-
-  @override
-  void initState() {
-    super.initState();
-    AppData()
-        .getStudentDetails(widget.batchName, widget.stuIndex)
-        .then((value) {
-      print(value);
-      details = value;
-      setState(() {});
-    });
-  }
+  ValueNotifier<StudentDetails> detailsValue = ValueNotifier(StudentDetails());
+  // final appData = appData;
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   appData
+  //       .getStudentDetails(batchName, stuIndex)
+  //       .then((value) {
+  //     print(value);
+  //     details = value;
+  //     setState(() {});
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
-    print(details.name);
+    appData.getStudentDetails(batchName, stuIndex).then((value) {
+      detailsValue.value = value;
+      print(detailsValue.value.name);
+    });
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            List<String> payableMonths = [
-              'January',
-              'February',
-              'March',
-              'April',
-              'May',
-              'June',
-              'July',
-              'August',
-              'September',
-              'October',
-              'November',
-              'December'
-            ];
             String payedMonth = '';
             await showModalBottomSheet(
               context: context,
               builder: (context) {
-                return ListView(
-                  children: [
-                    for (int i = 0; i < payableMonths.length; i++)
-                      GestureDetector(
-                        onTap: () async {
-                          var month = payableMonths[i];
-                          details.paymentHistory.add(month);
-                          Navigator.pop(context);
-                          AppData().updateStudentDetails(
-                              details.batch, widget.stuIndex, details);
-                          setState(() {});
-                        },
-                        child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                              alignment: Alignment.center,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                  borderRadius: BorderRadius.circular(8)),
-                              child: Text(
-                                payableMonths[i],
-                                style: const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                            )),
-                      ),
-                  ],
-                );
+                return ValueListenableBuilder(
+                    valueListenable: detailsValue,
+                    builder: (context, details, _) {
+                      return ListView(
+                        children: [
+                          for (int i = 0; i < appData.payableMonths.length; i++)
+                            GestureDetector(
+                              onTap: () async {
+                                var month = appData.payableMonths[i];
+                                details.paymentHistory.add(month);
+                                Navigator.pop(context);
+                                appData.updateStudentDetails(
+                                    details.batch, stuIndex, details);
+                                // setState(() {});
+                                detailsValue.notifyListeners();
+                              },
+                              child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                        color: Colors.blue,
+                                        borderRadius: BorderRadius.circular(8)),
+                                    child: Text(
+                                      appData.payableMonths[i],
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  )),
+                            ),
+                        ],
+                      );
+                    });
               },
             );
-            if (payedMonth == '' || payedMonth == null) return;
-            details.paymentHistory.add(payedMonth);
-            setState(() {});
-            AppData().updateStudentDetails(
-                widget.batchName, widget.stuIndex, details);
+
+            appData.updateStudentDetails(
+                batchName, stuIndex, detailsValue.value);
             print('object');
           },
           child: const Icon(Icons.add)),
@@ -109,139 +98,32 @@ class _StudentProfileState extends State<StudentProfile> {
                       // print(choice);
                       if (choice == 'Edit') {
                         Future.delayed(
-                          Duration(seconds: 0),
+                          const Duration(seconds: 0),
                           () async {
-                            await showDialog(
-                              context: context,
-                              builder: (context) {
-                                return Dialog(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Edit Student Information',
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextField(
-                                          keyboardType: TextInputType.name,
-                                          controller: TextEditingController(
-                                              text: details.name),
-                                          decoration: InputDecoration(
-                                              labelText: 'Name',
-                                              border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          16))),
-                                          onChanged: (value) =>
-                                              details.name = value,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextField(
-                                            keyboardType: TextInputType.number,
-                                            controller: TextEditingController(
-                                                text: details.roll),
-                                            decoration: InputDecoration(
-                                                labelText: 'Roll',
-                                                border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16))),
-                                            onChanged: (value) =>
-                                                details.roll = value),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextField(
-                                            keyboardType: TextInputType.phone,
-                                            controller: TextEditingController(
-                                                text: details.mobile),
-                                            decoration: InputDecoration(
-                                                labelText: 'Mobile',
-                                                border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16))),
-                                            onChanged: (value) =>
-                                                details.mobile = value),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextField(
-                                            keyboardType:
-                                                TextInputType.streetAddress,
-                                            controller: TextEditingController(
-                                                text: details.address),
-                                            decoration: InputDecoration(
-                                                labelText: 'Address',
-                                                border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16))),
-                                            onChanged: (value) =>
-                                                details.address = value),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextField(
-                                            keyboardType: TextInputType.number,
-                                            controller: TextEditingController(
-                                                text: details.address),
-                                            decoration: InputDecoration(
-                                                labelText: 'Payment',
-                                                border: OutlineInputBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16))),
-                                            onChanged: (value) =>
-                                                details.payment = value),
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          Navigator.pop(context);
-                                        },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.blueAccent,
-                                              borderRadius:
-                                                  BorderRadius.circular(12)),
-                                          child: const Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Save',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16),
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
+                            studentListtileOnTapEdit(context,
+                                detailsValue.value, stuIndex, batchName);
 
-                            AppData().updateStudentDetails(
-                                widget.batchName, widget.stuIndex, details);
-                            setState(() {});
+                            // final result = await Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //       builder: (context) =>
+                            //           StudentInfoScreen.update(
+                            //               batchName: batchName,
+                            //               details: details.value),
+                            //     ));
+                            // print('old:  ${details.value.name}');
+                            // details.value = result;
+                            // print(details.value.name);
+                            appData.updateStudentDetails(
+                                batchName, stuIndex, detailsValue.value);
+                            // // setState(() {});
                           },
                         );
                       } else if (choice == 'Delete') {
-                        AppData().deleteStudentDetails(
-                            widget.batchName, widget.stuIndex);
-                        setState(() {});
+                        appData.deleteStudentDetails(batchName, stuIndex);
+                        // setState(() {});
                         Future.delayed(
-                          Duration(seconds: 0),
+                          const Duration(seconds: 0),
                           () {
                             Navigator.pop(context, true);
                           },
@@ -257,92 +139,118 @@ class _StudentProfileState extends State<StudentProfile> {
           )
         ],
       ),
-      body: ListView(
-        children: [
-          Container(
-            height: 200,
-            decoration: const BoxDecoration(color: Colors.blue),
-            child: Row(
+      body: ValueListenableBuilder(
+          valueListenable: detailsValue,
+          builder: (context, details, _) {
+            print('-> inside ValueListenableBuilder : ${details.name}');
+            return ListView(
               children: [
-                Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: ProfileIconCreator(name: details.name, size: 120)),
-                const SizedBox(
-                  width: 20,
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  height: 200,
+                  decoration: const BoxDecoration(color: Colors.blue),
+                  child: Row(
                     children: [
-                      // for (int i = 0; i < students.length; i++)
-                      Text(
-                        'Name: ${details.name}',
-                        style:
-                            const TextStyle(fontSize: 20, color: Colors.white),
+                      Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: ProfileIconCreator(
+                              name: details.name, size: 120)),
+                      const SizedBox(
+                        width: 20,
                       ),
-                      Text(
-                        'Roll: ${details.roll}',
-                        style:
-                            const TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                      Text(
-                        details.payment,
-                        style:
-                            const TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            details.mobile,
-                            style: const TextStyle(
-                                fontSize: 20, color: Colors.white),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            onPressed: () {
-                              launchUrl(Uri.parse('tel:${details.mobile}'));
-                            },
-                            icon: const Icon(
-                              Icons.call,
-                              color: Colors.white,
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // for (int i = 0; i < students.length; i++)
+                            Text(
+                              'Name: ${details.name}',
+                              style: const TextStyle(
+                                  fontSize: 20, color: Colors.white),
                             ),
-                          ),
-                          IconButton(
-                              onPressed: () {
-                                launchUrl(Uri.parse('sms:${details.mobile}'));
-                              },
-                              icon: const Icon(
-                                Icons.sms_rounded,
-                                color: Colors.white,
-                              ))
-                        ],
-                      ),
-                      Text(
-                        details.address,
-                        style:
-                            const TextStyle(fontSize: 20, color: Colors.white),
+                            Text(
+                              'Roll: ${details.roll}',
+                              style: const TextStyle(
+                                  fontSize: 20, color: Colors.white),
+                            ),
+                            Text(
+                              details.payment,
+                              style: const TextStyle(
+                                  fontSize: 20, color: Colors.white),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  details.mobile,
+                                  style: const TextStyle(
+                                      fontSize: 20, color: Colors.white),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () {
+                                    launchUrl(
+                                        Uri.parse('tel:${details.mobile}'));
+                                  },
+                                  icon: const Icon(
+                                    Icons.call,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      launchUrl(
+                                          Uri.parse('sms:${details.mobile}'));
+                                    },
+                                    icon: const Icon(
+                                      Icons.sms_rounded,
+                                      color: Colors.white,
+                                    ))
+                              ],
+                            ),
+                            Text(
+                              details.address,
+                              style: const TextStyle(
+                                  fontSize: 20, color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
+                for (int i = 0; i < details.paymentHistory.length; i++)
+                  ListTile(
+                    title: Text(details.paymentHistory[i]),
+                    subtitle: Text('payed on ${DateTime.now()}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (editPayment == true)
+                          IconButton(
+                              onPressed: () {}, icon: const Icon(Icons.edit))
+                      ],
+                    ),
+                  )
               ],
-            ),
-          ),
-          for (int i = 0; i < details.paymentHistory.length; i++)
-            ListTile(
-              title: Text(details.paymentHistory[i]),
-              subtitle: Text('payed on ${DateTime.now()}'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (editPayment == true)
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.edit))
-                ],
-              ),
-            )
-        ],
-      ),
+            );
+          }),
     );
+  }
+
+  void studentListtileOnTapEdit(BuildContext context, StudentDetails details,
+      int index, String batchName) async {
+    var result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StudentInfoScreen.update(
+            batchName: batchName,
+            details: details,
+          ),
+        ));
+    print('result ${result}');
+    if (result == null) return;
+    detailsValue.value = result;
+    detailsValue.notifyListeners();
+    appData.updateStudentDetails(batchName, index, result);
   }
 }

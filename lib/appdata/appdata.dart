@@ -9,6 +9,20 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppData {
+  List<String> payableMonths = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
   ValueNotifier<List<String>> studentBatch = ValueNotifier([]);
   ValueNotifier<List<StudentDetails>> students = ValueNotifier([]);
   Future<File?> get _localFile async {

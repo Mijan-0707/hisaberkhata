@@ -1,4 +1,4 @@
-import 'dart:convert';
+// import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
@@ -6,16 +6,16 @@ import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/screens/homescreen.dart';
 import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
-import '../constants/constants.dart';
+// import '../constants/constants.dart';
 import '../widgets/profileicon.dart';
 
 class StudentListPage extends StatelessWidget {
   StudentListPage({super.key, required this.batchName});
 
   String batchName;
-  final appData = AppData();
+  // final appData = AppData();
 //   @override
 //   State<StudentListPage> createState() => _StudentListPageState();
 // }
@@ -35,7 +35,6 @@ class StudentListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     appData.getStudents(batchName);
-
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
@@ -62,9 +61,9 @@ class StudentListPage extends StatelessWidget {
                       onTap: () async {
                         // print(choice);
                         if (choice == 'Edit') {
-                          studentListOnTapEdit(context);
+                          studentListOnTapEdit(context, batchName);
                         } else if (choice == 'Delete') {
-                          studentListOnTapDelete(context);
+                          studentListOnTapDelete(context, batchName);
                         }
                       },
                       value: choice,
@@ -75,14 +74,16 @@ class StudentListPage extends StatelessWidget {
           ],
           leading: IconButton(
               onPressed: () {
-                Navigator.pop(context,
-                    MaterialPageRoute(builder: ((context) => HomeScreen())));
+                Navigator.pop(
+                    context,
+                    MaterialPageRoute(
+                        builder: ((context) => const HomeScreen())));
               },
               icon: const Icon(Icons.arrow_back))),
       body: ValueListenableBuilder(
           valueListenable: appData.students,
           builder: (context, students, _) {
-            print(students.length);
+            // print(students.length);
             return ListView(
               children: [
                 for (int i = 0; i < students.length; i++)
@@ -95,14 +96,6 @@ class StudentListPage extends StatelessWidget {
                                     batchName: batchName,
                                     stuIndex: i,
                                   ))));
-
-                      // appData.getStudents(batchName)
-                      // .then((value) {
-                      //   appData.students.value.clear();
-                      //   appData.students.value.addAll(value);
-
-                      //   // setState(() {});
-                      // });
                     },
                     child: Padding(
                         padding:
@@ -119,11 +112,11 @@ class StudentListPage extends StatelessWidget {
                                     onTap: () async {
                                       // print(choice);
                                       Future.delayed(
-                                        Duration(seconds: 0),
+                                        const Duration(seconds: 0),
                                         () {
                                           if (choice == 'Edit') {
-                                            studentListtileOnTapEdit(
-                                                context, students[i], i);
+                                            studentListtileOnTapEdit(context,
+                                                students[i], i, batchName);
                                           } else if (choice == 'Delete') {
                                             appData.deleteStudentDetails(
                                                 batchName, i);
@@ -147,8 +140,8 @@ class StudentListPage extends StatelessWidget {
     );
   }
 
-  void studentListtileOnTapEdit(
-      BuildContext context, StudentDetails details, int index) async {
+  void studentListtileOnTapEdit(BuildContext context, StudentDetails details,
+      int index, String batchName) async {
     var result = await Navigator.push(
         context,
         MaterialPageRoute(
@@ -157,12 +150,13 @@ class StudentListPage extends StatelessWidget {
             details: details,
           ),
         ));
+    details = result;
     appData.updateStudentDetails(batchName, index, result);
   }
 
-  void studentListOnTapDelete(BuildContext context) {
+  void studentListOnTapDelete(BuildContext context, String batchName) {
     Future.delayed(
-      Duration(seconds: 0),
+      const Duration(seconds: 0),
       () async {
         final result = await showDialog<bool>(
           context: context,
@@ -171,7 +165,7 @@ class StudentListPage extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Do you Really want to delete'),
+                  const Text('Do you Really want to delete'),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -198,9 +192,9 @@ class StudentListPage extends StatelessWidget {
     );
   }
 
-  void studentListOnTapEdit(BuildContext context) {
+  void studentListOnTapEdit(BuildContext context, String batchName) {
     Future.delayed(
-      Duration(seconds: 0),
+      const Duration(seconds: 0),
       () async {
         String newBatchName = '';
         final ValueNotifier<bool> _isInvalid = ValueNotifier<bool>(false);
