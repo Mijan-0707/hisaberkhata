@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
+import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
-
-final appData = AppData();
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    appData.getBatchNames();
+    AppDataProvider.of(context).appData.getBatchNames();
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -26,21 +25,21 @@ class HomeScreen extends StatelessWidget {
           PopupMenuButton(itemBuilder: (c) {
             return {'Backup', 'Restore'}.map((String choice) {
               return PopupMenuItem(
+                child: Text(choice),
                 onTap: () async {
                   if (choice == 'Backup') {
-                    appData.createBackup();
+                    AppDataProvider.of(context).appData.createBackup();
                   } else if (choice == 'Restore') {
-                    await appData.restoreData();
+                    await AppDataProvider.of(context).appData.restoreData();
                   }
                 },
-                child: Text(choice),
               );
             }).toList();
           })
         ],
       ),
       body: ValueListenableBuilder(
-          valueListenable: appData.studentBatch,
+          valueListenable: AppDataProvider.of(context).appData.studentBatch,
           builder: (context, studentBatch, _) {
             return ListView(
               children: [
@@ -88,9 +87,18 @@ class HomeScreen extends StatelessWidget {
                     onPressed: () async {
                       isInvalid = false;
                       for (int i = 0;
-                          i < appData.studentBatch.value.length;
+                          i <
+                              AppDataProvider.of(context)
+                                  .appData
+                                  .studentBatch
+                                  .value
+                                  .length;
                           i++) {
-                        if (batch == appData.studentBatch.value[i]) {
+                        if (batch ==
+                            AppDataProvider.of(context)
+                                .appData
+                                .studentBatch
+                                .value[i]) {
                           isInvalid = true;
                           break;
                         }
@@ -117,7 +125,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
     if (res != null && res.isNotEmpty) {
-      appData.createBatchName(res);
+      AppDataProvider.of(context).appData.createBatchName(res);
     }
   }
 
@@ -170,8 +178,9 @@ class HomeScreen extends StatelessWidget {
                               ),
                               TextButton(
                                   onPressed: () async {
-                                    await appData.updateBatchName(
-                                        name, newBatchName);
+                                    await AppDataProvider.of(context)
+                                        .appData
+                                        .updateBatchName(name, newBatchName);
                                     // ignore: use_build_context_synchronously
                                     Navigator.pop(context);
                                   },
@@ -216,7 +225,9 @@ class HomeScreen extends StatelessWidget {
                   child: const Text('No')),
               TextButton(
                   onPressed: () async {
-                    await appData.deleteBatchName(name);
+                    await AppDataProvider.of(context)
+                        .appData
+                        .deleteBatchName(name);
                     Navigator.pop(context);
                     // appData.getBatchNames().then((value) {
                     //   studentBatch = value;

@@ -1,0 +1,8 @@
+
+
+1. Home Screen -> onCreateNewBatch() -> we use a StatefulBuilder. can't we use value notifyListeners on there?
+2. in updateBatchName what if we check the newBatchName at first. why should we get all the batchNames and then checking the newBatchName.
+3. cant find the use of batchname in studennt info screen.
+4. in addNewStudents why do we adding the student info into student.value? we are going to replace the the full list.
+5. what is barrierDismissible. we use it in studentlist-> studentListOnTapEdit().
+6. on studentlist page at the bottom we use a condition can't we remove it?

@@ -4,12 +4,6 @@ import '../appdata/student_details_data_model.dart';
 class StudentInfoScreen extends StatelessWidget {
   var batchName;
   final StudentDetails details;
-  // StudentInfoScreen({
-  //   super.key,
-  //   required this.batchName,
-  //   StudentDetails? oldDetails,
-  // }) : details = oldDetails ?? StudentDetails();
-
   StudentInfoScreen({super.key, required this.batchName})
       : details = StudentDetails();
   StudentInfoScreen.update(

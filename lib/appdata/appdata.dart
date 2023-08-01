@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/constants/constants.dart';
@@ -50,7 +49,6 @@ class AppData {
     for (int i = 0; i < batchNames.length; i++) {
       studentBatch.add(batchNames[i]);
     }
-
     this.studentBatch.value = studentBatch;
     return studentBatch;
   }
@@ -71,7 +69,6 @@ class AppData {
   Future addNewStudent(String batch, StudentDetails studentInfo) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     if (studentInfo == null) return;
-    AppData().students.value.add(studentInfo);
     final students = await getStudents(batch);
     students.add(studentInfo);
     this.students.value = students;
@@ -87,6 +84,7 @@ class AppData {
     List<dynamic> batchNames = jsonDecode(batchNamesStr);
     final studentBatch = <String>[];
     for (int i = 0; i < batchNames.length; i++) {
+      newName.trim();
       if (newName == '') return;
       if (batchNames[i] == old) {
         batchNames[i] = newName;
@@ -106,7 +104,6 @@ class AppData {
     // print('new name : ${[old, newName]}');
     prefs.setString(newName, oldBatchnamesJson);
     prefs.remove(old);
-// prefs.remove(old);
   }
 
   Future<void> deleteBatchName(String batchName) async {
@@ -146,11 +143,6 @@ class AppData {
       );
 
       final records = studentsList[i]['paymentHistory'] as List?;
-      // records.forEach(s.paymentHistory.add);
-      // records.forEach((value) {
-      //   s.paymentHistory.add(value);
-      // });
-
       if (records != null) {
         for (var r in records) {
           s.paymentHistory.add(r as String);
@@ -159,8 +151,8 @@ class AppData {
       students.add(s);
     }
     this.students.value = students;
-    print(batch);
-    print(students);
+    // print(batch);
+    // print(students);
     return students;
   }
 
@@ -172,7 +164,7 @@ class AppData {
   void createBackup() async {
     final file = await _localFile;
     if (file == null) return;
-    print(file.path);
+    // print(file.path);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
     if (batchNamesStr == null) return;
