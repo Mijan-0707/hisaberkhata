@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/screens/homescreen.dart';
 import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
+import '../main.dart';
 import '../widgets/profileicon.dart';
 import 'inherited_widget.dart';
 
@@ -13,7 +15,7 @@ class StudentListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppDataProvider.of(context).appData.getStudents(batchName);
+    context.read<AppDataCubit>().data.getStudents(batchName);
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
@@ -24,7 +26,7 @@ class StudentListPage extends StatelessWidget {
                 builder: (context) => StudentInfoScreen(batchName: batchName),
               ));
           if (result == null) return;
-          AppDataProvider.of(context).appData.addNewStudent(batchName, result);
+          context.read<AppDataCubit>().data.addNewStudent(batchName, result);
         },
       ),
       appBar: AppBar(
@@ -58,7 +60,7 @@ class StudentListPage extends StatelessWidget {
               },
               icon: const Icon(Icons.arrow_back))),
       body: ValueListenableBuilder(
-          valueListenable: AppDataProvider.of(context).appData.students,
+          valueListenable: context.read<AppDataCubit>().data.students,
           builder: (context, students, _) {
             // print(students.length);
             return ListView(
@@ -95,8 +97,9 @@ class StudentListPage extends StatelessWidget {
                                             studentListtileOnTapEdit(context,
                                                 students[i], i, batchName);
                                           } else if (choice == 'Delete') {
-                                            AppDataProvider.of(context)
-                                                .appData
+                                            context
+                                                .read<AppDataCubit>()
+                                                .data
                                                 .deleteStudentDetails(
                                                     batchName, i);
                                           }
@@ -131,8 +134,9 @@ class StudentListPage extends StatelessWidget {
         ));
     if (result == null) return;
     details = result;
-    AppDataProvider.of(context)
-        .appData
+    context
+        .read<AppDataCubit>()
+        .data
         .updateStudentDetails(batchName, index, result);
   }
 
@@ -153,8 +157,9 @@ class StudentListPage extends StatelessWidget {
                     children: [
                       TextButton(
                           onPressed: () {
-                            AppDataProvider.of(context)
-                                .appData
+                            context
+                                .read<AppDataCubit>()
+                                .data
                                 .deleteBatchName(batchName);
                             Navigator.pop(context, true);
                           },
@@ -222,8 +227,9 @@ class StudentListPage extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () async {
-                      final batchNames = await AppDataProvider.of(context)
-                          .appData
+                      final batchNames = await context
+                          .read<AppDataCubit>()
+                          .data
                           .getBatchNames();
                       _isInvalid.value = false;
                       for (int i = 0; i < batchNames.length; i++) {
@@ -252,8 +258,9 @@ class StudentListPage extends StatelessWidget {
             );
           },
         );
-        AppDataProvider.of(context)
-            .appData
+        context
+            .read<AppDataCubit>()
+            .data
             .updateBatchName(batchName, newBatchName);
         batchName = newBatchName;
       },

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hisaberkhata/widgets/profileicon.dart';
 import 'package:hisaberkhata/screens/homescreen.dart';
 
+import '../main.dart';
 import 'inherited_widget.dart';
 
 class StudentProfile extends StatelessWidget {
@@ -17,8 +19,9 @@ class StudentProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppDataProvider.of(context)
-        .appData
+    context
+        .read<AppDataCubit>()
+        .data
         .getStudentDetails(batchName, stuIndex)
         .then((value) {
       detailsValue.value = value;
@@ -38,20 +41,23 @@ class StudentProfile extends StatelessWidget {
                         children: [
                           for (int i = 0;
                               i <
-                                  AppDataProvider.of(context)
-                                      .appData
+                                  context
+                                      .read<AppDataCubit>()
+                                      .data
                                       .payableMonths
                                       .length;
                               i++)
                             GestureDetector(
                               onTap: () async {
-                                var month = AppDataProvider.of(context)
-                                    .appData
+                                var month = context
+                                    .read<AppDataCubit>()
+                                    .data
                                     .payableMonths[i];
                                 details.paymentHistory.add(month);
                                 Navigator.pop(context);
-                                AppDataProvider.of(context)
-                                    .appData
+                                context
+                                    .read<AppDataCubit>()
+                                    .data
                                     .updateStudentDetails(
                                         details.batch, stuIndex, details);
                                 detailsValue.notifyListeners();
@@ -65,8 +71,9 @@ class StudentProfile extends StatelessWidget {
                                         color: Colors.blue,
                                         borderRadius: BorderRadius.circular(8)),
                                     child: Text(
-                                      AppDataProvider.of(context)
-                                          .appData
+                                      context
+                                          .read<AppDataCubit>()
+                                          .data
                                           .payableMonths[i],
                                       style: const TextStyle(
                                           fontSize: 20,
@@ -79,8 +86,9 @@ class StudentProfile extends StatelessWidget {
                     });
               },
             );
-            AppDataProvider.of(context)
-                .appData
+            context
+                .read<AppDataCubit>()
+                .data
                 .updateStudentDetails(batchName, stuIndex, detailsValue.value);
             print('object');
           },
@@ -100,15 +108,17 @@ class StudentProfile extends StatelessWidget {
                           () async {
                             studentListtileOnTapEdit(context,
                                 detailsValue.value, stuIndex, batchName);
-                            AppDataProvider.of(context)
-                                .appData
+                            context
+                                .read<AppDataCubit>()
+                                .data
                                 .updateStudentDetails(
                                     batchName, stuIndex, detailsValue.value);
                           },
                         );
                       } else if (choice == 'Delete') {
-                        AppDataProvider.of(context)
-                            .appData
+                        context
+                            .read<AppDataCubit>()
+                            .data
                             .deleteStudentDetails(batchName, stuIndex);
                         Future.delayed(
                           const Duration(seconds: 0),
@@ -238,8 +248,9 @@ class StudentProfile extends StatelessWidget {
     if (result == null) return;
     detailsValue.value = result;
     detailsValue.notifyListeners();
-    AppDataProvider.of(context)
-        .appData
+    context
+        .read<AppDataCubit>()
+        .data
         .updateStudentDetails(batchName, index, result);
   }
 }

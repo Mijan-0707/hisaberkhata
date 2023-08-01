@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
+import 'package:hisaberkhata/main.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
 
@@ -8,7 +10,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppDataProvider.of(context).appData.getBatchNames();
+    context.read<AppDataCubit>().data.getBatchNames();
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -28,9 +30,9 @@ class HomeScreen extends StatelessWidget {
                 child: Text(choice),
                 onTap: () async {
                   if (choice == 'Backup') {
-                    AppDataProvider.of(context).appData.createBackup();
+                    context.read<AppDataCubit>().data.createBackup();
                   } else if (choice == 'Restore') {
-                    await AppDataProvider.of(context).appData.restoreData();
+                    await context.read<AppDataCubit>().data.restoreData();
                   }
                 },
               );
@@ -39,7 +41,7 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: ValueListenableBuilder(
-          valueListenable: AppDataProvider.of(context).appData.studentBatch,
+          valueListenable: context.read<AppDataCubit>().data.studentBatch,
           builder: (context, studentBatch, _) {
             return ListView(
               children: [
@@ -88,15 +90,17 @@ class HomeScreen extends StatelessWidget {
                       isInvalid = false;
                       for (int i = 0;
                           i <
-                              AppDataProvider.of(context)
-                                  .appData
+                              context
+                                  .read<AppDataCubit>()
+                                  .data
                                   .studentBatch
                                   .value
                                   .length;
                           i++) {
                         if (batch ==
-                            AppDataProvider.of(context)
-                                .appData
+                            context
+                                .read<AppDataCubit>()
+                                .data
                                 .studentBatch
                                 .value[i]) {
                           isInvalid = true;
@@ -125,7 +129,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
     if (res != null && res.isNotEmpty) {
-      AppDataProvider.of(context).appData.createBatchName(res);
+      context.read<AppDataCubit>().data.createBatchName(res);
     }
   }
 
@@ -178,8 +182,9 @@ class HomeScreen extends StatelessWidget {
                               ),
                               TextButton(
                                   onPressed: () async {
-                                    await AppDataProvider.of(context)
-                                        .appData
+                                    await context
+                                        .read<AppDataCubit>()
+                                        .data
                                         .updateBatchName(name, newBatchName);
                                     // ignore: use_build_context_synchronously
                                     Navigator.pop(context);
@@ -225,9 +230,7 @@ class HomeScreen extends StatelessWidget {
                   child: const Text('No')),
               TextButton(
                   onPressed: () async {
-                    await AppDataProvider.of(context)
-                        .appData
-                        .deleteBatchName(name);
+                    context.read<AppDataCubit>().data.deleteBatchName(name);
                     Navigator.pop(context);
                     // appData.getBatchNames().then((value) {
                     //   studentBatch = value;

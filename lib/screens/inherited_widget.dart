@@ -2,28 +2,28 @@
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
 
-class AppDataProvider extends InheritedWidget {
-  const AppDataProvider({
-    super.key,
-    required this.appData,
-    required super.child,
-  });
+// class AppDataProvider extends InheritedWidget {
+//   const AppDataProvider({
+//     super.key,
+//     required this.appData,
+//     required super.child,
+//   });
 
-  final AppData appData;
+//   final AppData appData;
 
-  static AppDataProvider? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<AppDataProvider>();
-  }
+//   static AppDataProvider? maybeOf(BuildContext context) {
+//     return context.dependOnInheritedWidgetOfExactType<AppDataProvider>();
+//   }
 
-  static AppDataProvider of(BuildContext context) {
-    final AppDataProvider? result = maybeOf(context);
-    assert(result != null, 'No AppDataProvider found in context');
-    return result!;
-  }
+//   static AppDataProvider of(BuildContext context) {
+//     final AppDataProvider? result = maybeOf(context);
+//     assert(result != null, 'No AppDataProvider found in context');
+//     return result!;
+//   }
 
-  @override
-  bool updateShouldNotify(AppDataProvider oldWidget) => true;
-}
+//   @override
+//   bool updateShouldNotify(AppDataProvider oldWidget) => true;
+// }
 
 // class MyPage extends StatelessWidget {
 //   const MyPage({super.key});
