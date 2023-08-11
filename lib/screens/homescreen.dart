@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
 
@@ -13,7 +12,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            await onCreateNewBatch(context);
+            await onTapCreateNewBatch(context);
           },
           backgroundColor: const Color(0xff536DFE),
           child: const Icon(Icons.add)),
@@ -55,7 +54,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Future<void> onCreateNewBatch(BuildContext context) async {
+  Future<void> onTapCreateNewBatch(BuildContext context) async {
     final res = await showModalBottomSheet<String?>(
       context: context,
       builder: (context) {
@@ -134,6 +133,7 @@ class HomeScreen extends StatelessWidget {
         context,
         MaterialPageRoute(
             builder: (context) => StudentListPage(batchName: name)));
+    AppDataProvider.of(context).appData.students.value = [];
   }
 
   Future<dynamic> onLongPressBatchName(BuildContext context, String name) {
@@ -229,10 +229,6 @@ class HomeScreen extends StatelessWidget {
                         .appData
                         .deleteBatchName(name);
                     Navigator.pop(context);
-                    // appData.getBatchNames().then((value) {
-                    //   studentBatch = value;
-                    //   setState(() {});
-                    // });
                   },
                   child: const Text('Yes'))
             ],

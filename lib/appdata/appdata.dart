@@ -108,6 +108,7 @@ class AppData {
 
   Future<void> deleteBatchName(String batchName) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove(batchName);
     final batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
     if (batchNamesStr == null || batchNamesStr.isEmpty) return;
     List<dynamic> batchNames = jsonDecode(batchNamesStr);
@@ -119,7 +120,8 @@ class AppData {
     }
     var res = jsonEncode(studentBatch);
     prefs.setString(PreferenceConstants.batchNameKey, res);
-    prefs.remove(batchName);
+    studentBatch.remove(batchName);
+
     this.studentBatch.value = studentBatch;
 
     print('deleted: $batchName, $res');
