@@ -10,6 +10,7 @@ class HomeScreen extends StatelessWidget {
     AppDataProvider.of(context).appData.getBatchNames();
 
     return Scaffold(
+      backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
             await onTapCreateNewBatch(context);
@@ -17,9 +18,28 @@ class HomeScreen extends StatelessWidget {
           backgroundColor: const Color(0xff536DFE),
           child: const Icon(Icons.add)),
       appBar: AppBar(
+        actionsIconTheme: const IconThemeData.fallback(),
+        leading: Row(
+          children: [
+            const SizedBox(
+              width: 5,
+            ),
+            Container(
+              height: 50,
+              width: 50,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset('assets/pic/pp.png', fit: BoxFit.fill),
+            ),
+          ],
+        ),
         centerTitle: true,
-        title: const Text('List Of Batches'),
-        backgroundColor: const Color(0xff536DFE),
+        title: const Text(
+          'List Of Batches',
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: const Color(0xffffffff),
         actions: [
           PopupMenuButton(itemBuilder: (c) {
             return {'Backup', 'Restore'}.map((String choice) {
@@ -40,15 +60,18 @@ class HomeScreen extends StatelessWidget {
       body: ValueListenableBuilder(
           valueListenable: AppDataProvider.of(context).appData.studentBatch,
           builder: (context, studentBatch, _) {
-            return ListView(
-              children: [
-                for (int i = 0; i < studentBatch.length; i++)
-                  BatchItemWidget(studentBatch[i], onTap: () {
-                    onTapBatchName(context, studentBatch[i]);
-                  }, onLongPress: () {
-                    onLongPressBatchName(context, studentBatch[i]);
-                  }),
-              ],
+            return SizedBox(
+              height: 300,
+              child: ListView(
+                children: [
+                  for (int i = 0; i < studentBatch.length; i++)
+                    BatchItemWidget(studentBatch[i], onTap: () {
+                      onTapBatchName(context, studentBatch[i]);
+                    }, onLongPress: () {
+                      onLongPressBatchName(context, studentBatch[i]);
+                    }),
+                ],
+              ),
             );
           }),
     );

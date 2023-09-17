@@ -140,6 +140,7 @@ class AppData {
         mobile: studentsList[i]['mobile'],
         address: studentsList[i]['address'],
         roll: studentsList[i]['roll'],
+        section: studentsList[i]['section'],
         payment: studentsList[i]['payment'],
         batch: studentsList[i]['studentBatch'],
       );
@@ -154,13 +155,13 @@ class AppData {
     }
     this.students.value = students;
     // print(batch);
-    // print(students);
+    // print(students.);
     return students;
   }
 
   Future<StudentDetails> getStudentDetails(String batchName, int index) async {
-    final students = await getStudents(batchName);
-    return students[index];
+    // final students = await getStudents(batchName);
+    return students.value[index];
   }
 
   void createBackup() async {
@@ -207,7 +208,7 @@ class AppData {
         await prefs.setString(keys[i], dataMap[keys[i]]);
       }
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 

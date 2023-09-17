@@ -5,7 +5,9 @@
 [solved] 4. students id is not deleting
 [solved] 5. batch name can't be same while editing
 6. batch is not creating while keyboard is off
-
+7. dublicate entry after editing student list
+8. filterList -> filterStudents -> studentprofile -> StudentListPage -> filterStudents are not there
+9.[solved] index misMatch in filtered Student list
 
 
 **improvements**
@@ -21,6 +23,8 @@
 10. payment delete option;
 11. Empty check
 12.[solved] BatchList Screen converted to statelesss
+13.[added] add appbar on StudentInfoScreen page.
+
 
 **features**
 1. tap and hold to delete payment entry

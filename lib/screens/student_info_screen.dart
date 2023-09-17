@@ -15,24 +15,23 @@ class StudentInfoScreen extends StatelessWidget {
   late final rollController = TextEditingController(text: details.roll);
   late final mobileController = TextEditingController(text: details.mobile);
   late final paymentController = TextEditingController(text: details.payment);
+  late final sectionController = TextEditingController(
+    text: details.section,
+  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text(
+          'Student Information',
+          style: TextStyle(
+              fontSize: 16, color: Colors.blue, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Center(
-              child: Text(
-                'Student Information',
-                style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ValueListenableBuilder(
@@ -60,6 +59,17 @@ class StudentInfoScreen extends StatelessWidget {
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16))),
               controller: rollController,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              keyboardType: TextInputType.name,
+              decoration: InputDecoration(
+                  labelText: 'section',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16))),
+              controller: sectionController,
             ),
           ),
           Padding(
@@ -101,6 +111,7 @@ class StudentInfoScreen extends StatelessWidget {
                 details.name = nameController.text;
                 details.payment = paymentController.text;
                 details.roll = rollController.text;
+                details.section = sectionController.text;
                 details.address = addressController.text;
                 details.mobile = mobileController.text;
                 Navigator.pop(context, details);

@@ -161,6 +161,11 @@ class StudentProfile extends StatelessWidget {
                                   fontSize: 20, color: Colors.white),
                             ),
                             Text(
+                              'Srction: ${details.section}',
+                              style: const TextStyle(
+                                  fontSize: 20, color: Colors.white),
+                            ),
+                            Text(
                               details.payment,
                               style: const TextStyle(
                                   fontSize: 20, color: Colors.white),

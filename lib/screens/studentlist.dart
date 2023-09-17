@@ -5,11 +5,13 @@ import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
 import '../widgets/profileicon.dart';
 import 'inherited_widget.dart';
+import 'dart:collection';
 
 class StudentListPage extends StatelessWidget {
   StudentListPage({super.key, required this.batchName});
 
   String batchName;
+  final searchText = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -58,64 +60,110 @@ class StudentListPage extends StatelessWidget {
               },
               icon: const Icon(Icons.arrow_back))),
       body: ValueListenableBuilder(
-          valueListenable: AppDataProvider.of(context).appData.students,
-          builder: (context, students, _) {
-            // print(students.length);
-            return ListView(
-              children: [
-                for (int i = 0; i < students.length; i++)
-                  GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: ((context) => StudentProfile(
-                                    batchName: batchName,
-                                    stuIndex: i,
-                                  ))));
-                    },
-                    child: Padding(
-                        padding:
-                            const EdgeInsets.only(left: 8, right: 8, top: 8),
-                        child: ListTile(
-                          tileColor: Colors.tealAccent,
-                          leading: ProfileIconCreator(name: students[i].name),
-                          title: Text('Name: ${students[i].name}'),
-                          subtitle: Text('Roll: ${students[i].roll}'),
-                          trailing: PopupMenuButton(
-                            itemBuilder: (c) {
-                              return {'Edit', 'Delete'}.map((String choice) {
-                                return PopupMenuItem(
-                                    onTap: () async {
-                                      // print(choice);
-                                      Future.delayed(
-                                        const Duration(seconds: 0),
-                                        () {
-                                          if (choice == 'Edit') {
-                                            studentListtileOnTapEdit(context,
-                                                students[i], i, batchName);
-                                          } else if (choice == 'Delete') {
-                                            AppDataProvider.of(context)
-                                                .appData
-                                                .deleteStudentDetails(
-                                                    batchName, i);
-                                          }
-                                        },
-                                      );
-                                    },
-                                    value: choice,
-                                    child: Text(choice));
-                              }).toList();
-                            },
-                          ),
+        valueListenable: AppDataProvider.of(context).appData.students,
+        builder: (context, students, _) {
+          students.sort((a, b) => a.name.compareTo(b.name));
+          ValueNotifier<List<StudentDetails>> filteredStudentList =
+              ValueNotifier([...students]);
+          final indexList = List.generate(students.length, (index) => index);
+          return ValueListenableBuilder(
+            valueListenable: filteredStudentList,
+            builder: (context, filturedStudents, _) {
+              return studentsList(
+                context,
+                filturedStudents,
+                indexList,
+                (value) {
+                  print(value);
+                  filteredStudentList.value.clear();
+                  indexList.clear();
+                  for (int i = 0; i < students.length; i++) {
+                    final s = students[i];
+                    if (s.name
+                        .toLowerCase()
+                        .contains(value.toLowerCase().trim())) {
+                      indexList.add(i);
+                      filteredStudentList.value.add(s);
+                    }
+                  }
+                  filteredStudentList.notifyListeners();
+                  print(filteredStudentList.value.length);
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
 
-                          textColor: Colors.white,
-                          // trailing: Checkbox(onChanged: (value) {}, value: true),
-                        )),
+  ListView studentsList(
+    BuildContext context,
+    List<StudentDetails> students,
+    List<int> indexList,
+    void Function(String str) onFilter,
+  ) {
+    return ListView(
+      children: [
+        TextField(
+          controller: searchText,
+          onChanged: onFilter,
+        ),
+        for (int i = 0; i < students.length; i++)
+          GestureDetector(
+            onTap: () async {
+              print('Student index $i');
+              // print('IndexList ${students[indexList[i]]}');
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: ((context) => StudentProfile(
+                            batchName: batchName,
+                            stuIndex: indexList[i],
+                          ))));
+            },
+            child: Padding(
+                padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
+                child: ListTile(
+                  tileColor: Colors.tealAccent,
+                  leading: ProfileIconCreator(name: indexList[i].toString()),
+                  // leading: ProfileIconCreator(name: students[i].name),
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Name: ${students[i].name}'),
+                      Text('Roll: ${students[i].roll}'),
+                      Text('Section: ${students[i].section}'),
+                    ],
                   ),
-              ],
-            );
-          }),
+                  trailing: PopupMenuButton(
+                    itemBuilder: (c) {
+                      return {'Edit', 'Delete'}.map((String choice) {
+                        return PopupMenuItem(
+                            onTap: () async {
+                              Future.delayed(
+                                const Duration(seconds: 0),
+                                () {
+                                  if (choice == 'Edit') {
+                                    studentListtileOnTapEdit(
+                                        context, students[i], i, batchName);
+                                  } else if (choice == 'Delete') {
+                                    AppDataProvider.of(context)
+                                        .appData
+                                        .deleteStudentDetails(batchName, i);
+                                  }
+                                },
+                              );
+                            },
+                            value: choice,
+                            child: Text(choice));
+                      }).toList();
+                    },
+                  ),
+                  textColor: Colors.white,
+                )),
+          ),
+      ],
     );
   }
 
