@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/constants/constants.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppData {
@@ -24,6 +27,7 @@ class AppData {
   ];
   ValueNotifier<List<String>> studentBatch = ValueNotifier([]);
   ValueNotifier<List<StudentDetails>> students = ValueNotifier([]);
+
   Future<File?> get _localFile async {
     var status = await Permission.storage.status;
     if (!status.isGranted) await Permission.storage.request();
@@ -165,9 +169,7 @@ class AppData {
   }
 
   void createBackup() async {
-    final file = await _localFile;
-    if (file == null) return;
-    // print(file.path);
+    // final file = await _localFile;
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
     if (batchNamesStr == null) return;
@@ -185,21 +187,35 @@ class AppData {
 
     var backupStr = jsonEncode(data);
     print(backupStr);
+
+    final path = await getTemporaryDirectory();
+    final file = File('${path.path}/hisaberkhata_backup.txt');
     file.writeAsString(backupStr);
+    await Share.shareXFiles([
+      XFile(
+        '${path.path}/hisaberkhata_backup.txt',
+        name: 'hisaberkhata_backup',
+        mimeType: 'application/json',
+      )
+    ]);
   }
 
   Future<void> restoreData() async {
     try {
-      final file = await _localFile;
-      if (file == null) return;
-      // Read the file
-      final backupStr = await file.readAsString();
-      if (backupStr.isEmpty) return;
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['txt', 'json'],
+      );
+      if (result == null) return;
+      final f = File(result.files.first.path!);
+      print(f);
+      final dataStr = File(f.path!).readAsStringSync();
+      print('dataStr: $dataStr');
+      if (dataStr.isEmpty) return;
 
-      final dataMap = jsonDecode(backupStr) as Map?;
+      final dataMap = jsonDecode(dataStr) as Map?;
       if (dataMap == null || dataMap.isEmpty) return;
 
-      print(backupStr);
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final keys = dataMap.keys.toList();
       await prefs.setString(PreferenceConstants.batchNameKey, jsonEncode(keys));
@@ -207,6 +223,7 @@ class AppData {
       for (int i = 0; i < keys.length; i++) {
         await prefs.setString(keys[i], dataMap[keys[i]]);
       }
+      await getBatchNames();
     } catch (e) {
       // print(e);
     }
