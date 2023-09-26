@@ -78,12 +78,11 @@ class HomeScreen extends StatelessWidget {
   }
 
   Future<void> onTapCreateNewBatch(BuildContext context) async {
+    String batch = '';
+    String? errMsg;
     final res = await showModalBottomSheet<String?>(
       context: context,
       builder: (context) {
-        var batch = '';
-        bool isInvalid = false;
-
         return StatefulBuilder(builder: (context, setState2) {
           return Padding(
             padding: EdgeInsets.only(
@@ -97,7 +96,7 @@ class HomeScreen extends StatelessWidget {
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
                         labelText: 'Name of Batch',
-                        errorText: isInvalid ? 'The name already exists' : null,
+                        errorText: errMsg,
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16))),
                     onChanged: (value) {
@@ -107,26 +106,44 @@ class HomeScreen extends StatelessWidget {
                 ),
                 TextButton(
                     onPressed: () async {
-                      isInvalid = false;
-                      for (int i = 0;
-                          i <
-                              AppDataProvider.of(context)
-                                  .appData
-                                  .studentBatch
-                                  .value
-                                  .length;
-                          i++) {
-                        if (batch ==
-                            AppDataProvider.of(context)
-                                .appData
-                                .studentBatch
-                                .value[i]) {
-                          isInvalid = true;
-                          break;
-                        }
+                      if (batch.isEmpty) {
+                        errMsg = 'Batch name cannot be empty';
+                      } else if (AppDataProvider.of(context)
+                          .appData
+                          .studentBatch
+                          .value
+                          .toSet()
+                          .contains(batch)) {
+                        errMsg = 'Batch name already exists';
+                      } else {
+                        errMsg = null;
                       }
-                      setState2(() {});
-                      if (!isInvalid) Navigator.pop(context, batch);
+
+                      if (errMsg == null) {
+                        Navigator.pop(context, batch);
+                      } else {
+                        setState2(() {});
+                      }
+                      // for (int i = 0;
+                      //     i <
+                      //         AppDataProvider.of(context)
+                      //             .appData
+                      //             .studentBatch
+                      //             .value
+                      //             .length;
+                      //     i++) {
+                      //   if (batch ==
+                      //       AppDataProvider.of(context)
+                      //           .appData
+                      //           .studentBatch
+                      //           .value[i]) {
+                      //     isInvalid = true;
+                      //     break;
+                      //   }
+                      // }
+                      // if (isInvalid) setState2(() {});
+                      // else
+                      //   Navigator.pop(context, batch);
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -263,6 +280,7 @@ class HomeScreen extends StatelessWidget {
 class BatchItemWidget extends StatelessWidget {
   const BatchItemWidget(this.name,
       {required this.onTap, required this.onLongPress, super.key});
+
   final String name;
   final VoidCallback onTap, onLongPress;
 
