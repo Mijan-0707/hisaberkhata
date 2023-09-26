@@ -169,6 +169,13 @@ class AppData {
   }
 
   void createBackup() async {
+    final status = await Permission.manageExternalStorage.request();
+    if (!status.isGranted) return;
+    final downloadDir = Directory('/storage/emulated/0/Download');
+    if (!downloadDir.existsSync()) await downloadDir.create(recursive: true);
+    final dirExists = downloadDir.existsSync();
+
+
     // final file = await _localFile;
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
@@ -188,16 +195,25 @@ class AppData {
     var backupStr = jsonEncode(data);
     print(backupStr);
 
-    final path = await getTemporaryDirectory();
-    final file = File('${path.path}/hisaberkhata_backup.txt');
-    file.writeAsString(backupStr);
-    await Share.shareXFiles([
-      XFile(
-        '${path.path}/hisaberkhata_backup.txt',
-        name: 'hisaberkhata_backup',
-        mimeType: 'application/json',
-      )
-    ]);
+    if(dirExists) {
+      final file = File('${downloadDir.path}/hisaberkhata_backup.txt');
+      print(file);
+      if(!file.existsSync()) file.createSync();
+      print(file.existsSync());
+      file.writeAsString(backupStr);
+    } else {
+      final path = await getTemporaryDirectory();
+      final file = File('${path.path}/hisaberkhata_backup.txt');
+      file.writeAsString(backupStr);
+      await Share.shareXFiles([
+        XFile(
+          '${path.path}/hisaberkhata_backup.txt',
+          name: 'hisaberkhata_backup',
+          mimeType: 'application/json',
+        )
+      ]);
+      file.deleteSync();
+    }
   }
 
   Future<void> restoreData() async {
@@ -207,9 +223,11 @@ class AppData {
         allowedExtensions: ['txt', 'json'],
       );
       if (result == null) return;
+      print(result);
       final f = File(result.files.first.path!);
       print(f);
       final dataStr = File(f.path!).readAsStringSync();
+      f.deleteSync();
       print('dataStr: $dataStr');
       if (dataStr.isEmpty) return;
 
@@ -220,10 +238,12 @@ class AppData {
       final keys = dataMap.keys.toList();
       await prefs.setString(PreferenceConstants.batchNameKey, jsonEncode(keys));
 
-      for (int i = 0; i < keys.length; i++) {
-        await prefs.setString(keys[i], dataMap[keys[i]]);
+      for (String batch in keys) {
+        await prefs.setString(batch, jsonEncode(dataMap[batch]));
+        studentBatch.value.add(batch);
       }
-      await getBatchNames();
+      studentBatch.notifyListeners();
+      // await getBatchNames();
     } catch (e) {
       // print(e);
     }
