@@ -16,6 +16,7 @@ class StudentListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppDataProvider.of(context).appData.getStudents(batchName);
+    AppDataProvider.of(context).appData.getAllStudents();
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
@@ -64,8 +65,9 @@ class StudentListPage extends StatelessWidget {
         builder: (context, students, _) {
           students.sort((a, b) => a.name.compareTo(b.name));
           ValueNotifier<List<StudentDetails>> filteredStudentList =
-              ValueNotifier([...students]);
+              ValueNotifier([]);
           final indexList = List.generate(students.length, (index) => index);
+          filterStudents(filteredStudentList, indexList, students);
           return ValueListenableBuilder(
             valueListenable: filteredStudentList,
             builder: (context, filturedStudents, _) {
@@ -73,21 +75,8 @@ class StudentListPage extends StatelessWidget {
                 context,
                 filturedStudents,
                 indexList,
-                (value) {
-                  print(value);
-                  filteredStudentList.value.clear();
-                  indexList.clear();
-                  for (int i = 0; i < students.length; i++) {
-                    final s = students[i];
-                    if (s.name
-                        .toLowerCase()
-                        .contains(value.toLowerCase().trim())) {
-                      indexList.add(i);
-                      filteredStudentList.value.add(s);
-                    }
-                  }
-                  filteredStudentList.notifyListeners();
-                  print(filteredStudentList.value.length);
+                (_) {
+                  filterStudents(filteredStudentList, indexList, students);
                 },
               );
             },
@@ -95,6 +84,22 @@ class StudentListPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void filterStudents(ValueNotifier<List<StudentDetails>> filteredStudentList,
+      List<int> indexList, List<StudentDetails> students) {
+    String value = searchText.text;
+    filteredStudentList.value.clear();
+    indexList.clear();
+    for (int i = 0; i < students.length; i++) {
+      final s = students[i];
+      if (value.isEmpty ||
+          s.name.toLowerCase().contains(value.toLowerCase().trim())) {
+        indexList.add(i);
+        filteredStudentList.value.add(s);
+      }
+    }
+    filteredStudentList.notifyListeners();
   }
 
   ListView studentsList(
@@ -105,14 +110,23 @@ class StudentListPage extends StatelessWidget {
   ) {
     return ListView(
       children: [
-        TextField(
-          controller: searchText,
-          onChanged: onFilter,
+        Padding(
+          padding: const EdgeInsets.only(top: 12, left: 8, right: 8),
+          child: TextField(
+            controller: searchText,
+            onChanged: onFilter,
+            decoration: InputDecoration(
+              labelText: 'Search...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
         ),
         for (int i = 0; i < students.length; i++)
           GestureDetector(
             onTap: () async {
-              print('Student index $i');
+              // print('Student index $i');
               // print('IndexList ${students[indexList[i]]}');
               await Navigator.push(
                   context,
@@ -121,13 +135,13 @@ class StudentListPage extends StatelessWidget {
                             batchName: batchName,
                             stuIndex: indexList[i],
                           ))));
+              print('--> ${students}');
             },
             child: Padding(
                 padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
                 child: ListTile(
                   tileColor: Colors.tealAccent,
-                  leading: ProfileIconCreator(name: indexList[i].toString()),
-                  // leading: ProfileIconCreator(name: students[i].name),
+                  leading: ProfileIconCreator(name: students[i].name),
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -145,12 +159,13 @@ class StudentListPage extends StatelessWidget {
                                 const Duration(seconds: 0),
                                 () {
                                   if (choice == 'Edit') {
-                                    studentListtileOnTapEdit(
-                                        context, students[i], i, batchName);
+                                    studentListtileOnTapEdit(context,
+                                        students[i], indexList[i], batchName);
                                   } else if (choice == 'Delete') {
                                     AppDataProvider.of(context)
                                         .appData
-                                        .deleteStudentDetails(batchName, i);
+                                        .deleteStudentDetails(
+                                            batchName, indexList[i]);
                                   }
                                 },
                               );

@@ -175,7 +175,6 @@ class AppData {
     if (!downloadDir.existsSync()) await downloadDir.create(recursive: true);
     final dirExists = downloadDir.existsSync();
 
-
     // final file = await _localFile;
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
@@ -195,10 +194,10 @@ class AppData {
     var backupStr = jsonEncode(data);
     print(backupStr);
 
-    if(dirExists) {
+    if (dirExists) {
       final file = File('${downloadDir.path}/hisaberkhata_backup.txt');
       print(file);
-      if(!file.existsSync()) file.createSync();
+      if (!file.existsSync()) file.createSync();
       print(file.existsSync());
       file.writeAsString(backupStr);
     } else {
@@ -279,5 +278,17 @@ class AppData {
     students.notifyListeners();
     // print(studentsList);
     await prefs.setString(batchName, jsonEncode(studentsList));
+  }
+
+  Future<List<StudentDetails>> getAllStudents() async {
+    List<StudentDetails> allStudents = [];
+    final batchNames = await getBatchNames();
+    for (int i = 0; i < batchNames.length; i++) {
+      print('Batch name -->${batchNames}');
+      final students = await getStudents(batchNames[i]);
+      allStudents = [...allStudents, ...students];
+    }
+    print('All Students --> ${allStudents}');
+    return allStudents;
   }
 }

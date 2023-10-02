@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../appdata/student_details_data_model.dart';
 
 class StudentInfoScreen extends StatelessWidget {
@@ -53,7 +54,11 @@ class StudentInfoScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
-              keyboardType: TextInputType.number,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[0-9.,]')),
+              ],
               decoration: InputDecoration(
                   labelText: 'Roll',
                   border: OutlineInputBorder(
@@ -76,6 +81,9 @@ class StudentInfoScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[0-9.,+]')),
+              ],
               decoration: InputDecoration(
                   labelText: 'Mobile',
                   border: OutlineInputBorder(
@@ -98,6 +106,9 @@ class StudentInfoScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp('[0-9.,]')),
+              ],
               decoration: InputDecoration(
                   labelText: 'Payment',
                   border: OutlineInputBorder(
