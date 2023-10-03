@@ -27,6 +27,7 @@ class AppData {
   ];
   ValueNotifier<List<String>> studentBatch = ValueNotifier([]);
   ValueNotifier<List<StudentDetails>> students = ValueNotifier([]);
+  ValueNotifier<List<StudentDetails>> allStudents = ValueNotifier([]);
 
   Future<File?> get _localFile async {
     var status = await Permission.storage.status;
@@ -175,7 +176,6 @@ class AppData {
     if (!downloadDir.existsSync()) await downloadDir.create(recursive: true);
     final dirExists = downloadDir.existsSync();
 
-
     // final file = await _localFile;
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     var batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
@@ -195,10 +195,10 @@ class AppData {
     var backupStr = jsonEncode(data);
     print(backupStr);
 
-    if(dirExists) {
+    if (dirExists) {
       final file = File('${downloadDir.path}/hisaberkhata_backup.txt');
       print(file);
-      if(!file.existsSync()) file.createSync();
+      if (!file.existsSync()) file.createSync();
       print(file.existsSync());
       file.writeAsString(backupStr);
     } else {
@@ -279,5 +279,16 @@ class AppData {
     students.notifyListeners();
     // print(studentsList);
     await prefs.setString(batchName, jsonEncode(studentsList));
+  }
+
+  Future<List<StudentDetails>> getAllStudents() async {
+    List<StudentDetails> allStudents = [];
+    final batchNames = await getBatchNames();
+    for (int i = 0; i < batchNames.length; i++) {
+      final students = await getStudents(batchNames[i]);
+      allStudents = [...allStudents, ...students];
+    }
+    this.allStudents.value = allStudents;
+    return allStudents;
   }
 }

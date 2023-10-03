@@ -56,7 +56,7 @@ class StudentListPage extends StatelessWidget {
                 Navigator.pop(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) => const HomeScreen())));
+                        builder: ((context) => const HomeScreenOld())));
               },
               icon: const Icon(Icons.arrow_back))),
       body: ValueListenableBuilder(
@@ -126,8 +126,8 @@ class StudentListPage extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
                 child: ListTile(
                   tileColor: Colors.tealAccent,
-                  leading: ProfileIconCreator(name: indexList[i].toString()),
-                  // leading: ProfileIconCreator(name: students[i].name),
+                  // leading: ProfileIconCreator(name: indexList[i].toString()),
+                  leading: ProfileIconCreator(name: students[i].name),
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

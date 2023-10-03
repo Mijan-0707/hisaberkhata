@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreenOld extends StatelessWidget {
+  const HomeScreenOld({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hisaberkhata/appdata/abstract_appdata.dart';
+import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/core/theme/app_theme.dart';
 import 'package:hisaberkhata/feature/home/widget/batch_tile.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../screens/studentlist.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,7 +14,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: buildAppBar(context),
+      appBar: buildAppBar(context),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -58,6 +62,8 @@ class HomeScreen extends StatelessWidget {
               ),
             ],
           ),
+          Spacer(),
+          buildSearch(context),
           buildPopupMenu(context)
         ],
       ),
@@ -82,6 +88,14 @@ class HomeScreen extends StatelessWidget {
         );
       }).toList();
     });
+  }
+
+  Widget buildSearch(BuildContext context) {
+    return IconButton(
+        onPressed: () {
+          showSearch(context: context, delegate: CustomSearchDelegate());
+        },
+        icon: const Icon(Icons.search));
   }
 
   Widget buildSearchBar(BuildContext context) {
@@ -138,44 +152,58 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget buildBatchList(BuildContext context) {
-    final batchData = [
-      {
-        'name': 'Physics',
-        'description': 'Physics Batch of class 10',
-        'students': 10,
-        'weekDays': ['Mon', 'Wed', 'Fri'],
-        'time': '10:00 AM',
-        'isActive': true,
-      },
-      {
-        'name': 'Chemistry',
-        'description': 'Chemistry Batch of class 10',
-        'students': 10,
-        'weekDays': ['Mon', 'Wed', 'Fri'],
-        'time': '10:00 AM',
-        'isActive': true,
-      },
-      {
-        'name': 'Math',
-        'description': 'Math Batch of class 10',
-        'students': 10,
-        'weekDays': ['Mon', 'Wed', 'Fri'],
-        'time': '10:00 AM',
-        'isActive': true,
-      },
-    ];
+    var batchNames = AppDataProvider.of(context).appData.studentBatch;
+    // final batchData = [
+    //   {
+    //     'name': 'Physics',
+    //     'description': 'Physics Batch of class 10',
+    //     'students': 10,
+    //     'weekDays': ['Mon', 'Wed', 'Fri'],
+    //     'time': '10:00 AM',
+    //     'isActive': true,
+    //   },
+    //   {
+    //     'name': 'Chemistry',
+    //     'description': 'Chemistry Batch of class 10',
+    //     'students': 10,
+    //     'weekDays': ['Mon', 'Wed', 'Fri'],
+    //     'time': '10:00 AM',
+    //     'isActive': true,
+    //   },
+    //   {
+    //     'name': 'Math',
+    //     'description': 'Math Batch of class 10',
+    //     'students': 10,
+    //     'weekDays': ['Mon', 'Wed', 'Fri'],
+    //     'time': '10:00 AM',
+    //     'isActive': true,
+    //   },
+    // ];
     return SizedBox(
       height: 250,
-      child: ListView.separated(
-        physics: const BouncingScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        separatorBuilder: (context, index) => const SizedBox(width: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemBuilder: (context, index) => index < batchData.length
-            ? BatchTile(batch: batchData[index])
-            : const BatchTile.empty(),
-        itemCount: batchData.length + 1,
-      ),
+      child: ValueListenableBuilder(
+          valueListenable: batchNames,
+          builder: (context, batchName, _) {
+            batchName.sort((a, b) => a.compareTo(b));
+            return ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemBuilder: (context, index) => index < batchName.length
+                  ? GestureDetector(
+                      onTap: () async {
+                        await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => StudentListPage(
+                                    batchName: batchName[index])));
+                        AppDataProvider.of(context).appData.students.value = [];
+                      },
+                      child: BatchTile(batch: batchName[index]))
+                  : BatchTile.empty(),
+              itemCount: batchName.length + 1,
+            );
+          }),
     );
   }
 
@@ -266,4 +294,66 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class CustomSearchDelegate extends SearchDelegate {
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+          onPressed: () {
+            query = '';
+          },
+          icon: const Icon(Icons.clear))
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+        onPressed: () {
+          close(context, null);
+        },
+        icon: const Icon(Icons.arrow_back));
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    var matchQuery = getAllStudents(context, query);
+
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    List<String> matchQuery = getAllStudents(context, query);
+    return ListView.builder(
+      itemCount: matchQuery.length,
+      itemBuilder: (context, index) {
+        var result = matchQuery[index];
+        return ListTile(
+          title: Text(result),
+        );
+      },
+    );
+  }
+}
+
+List<String> getAllStudents(BuildContext context, String query) {
+  var allStudents = AppDataProvider.of(context).appData.allStudents;
+  List<String> matchQuery = [];
+  for (int i = 0; i < allStudents.value.length; i++) {
+    if (allStudents.value[i].name.toLowerCase().contains(query.toLowerCase())) {
+      matchQuery.add(allStudents.value[i].name);
+    }
+  }
+  return matchQuery;
 }
