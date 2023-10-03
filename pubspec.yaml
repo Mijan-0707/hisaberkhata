@@ -42,7 +42,12 @@ dependencies:
   permission_handler: ^10.4.1
   share_plus: 6.1.0
   file_picker: ^5.2.10
+  isar: 3.1.0+1
+  isar_flutter_libs: 3.1.0+1
+
 dev_dependencies:
+  isar_generator: 3.1.0+1
+  build_runner: any
   flutter_test:
     sdk: flutter
 
