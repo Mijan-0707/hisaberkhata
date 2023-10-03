@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hisaberkhata/appdata/abstract_appdata.dart';
-import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/core/theme/app_theme.dart';
 import 'package:hisaberkhata/feature/home/widget/batch_tile.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../screens/student_info_screen.dart';
 import '../../../screens/studentlist.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -190,22 +189,254 @@ class HomeScreen extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemBuilder: (context, index) => index < batchName.length
-                  ? GestureDetector(
-                      onTap: () async {
-                        await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => StudentListPage(
-                                    batchName: batchName[index])));
-                        AppDataProvider.of(context).appData.students.value = [];
+                  ? BatchTile(
+                      batch: batchName[index],
+                      menuMap: {
+                        'Edit': () => studentListOnTapEdit(context, batchName[index]),
+                        'Delete': () => studentListOnTapDelete(context, batchName[index]),
                       },
-                      child: BatchTile(batch: batchName[index]))
-                  : BatchTile.empty(),
+                onTapBody: ()async{
+                  await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => StudentListPage(batchName: batchName[index],)));
+                  AppDataProvider.of(context).appData.students.value = [];
+                },
+                onTapAdd: ()async{final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StudentInfoScreen(batchName: batchName[index],),
+                    ));
+                if (result == null) return;
+                AppDataProvider.of(context).appData.addNewStudent(batchName[index], result);},
+
+                    )
+                  : BatchTile.empty(
+                onTapEmptyCard: ()async{
+                  await onTapCreateNewBatch(context);
+                },
+              ),
               itemCount: batchName.length + 1,
             );
           }),
     );
   }
+
+  void studentListOnTapDelete(BuildContext context, String batchName) {
+    Future.delayed(
+      const Duration(seconds: 0),
+          () async {
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return Dialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Do you Really want to delete'),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                          onPressed: () {
+                            AppDataProvider.of(context)
+                                .appData
+                                .deleteBatchName(batchName);
+                            Navigator.pop(context, true);
+                          },
+                          child: const Text('Yes')),
+                      TextButton(
+                          onPressed: () {
+                            return;
+                          },
+                          child: const Text('No'))
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+        if (result == true) Navigator.pop(context);
+      },
+    );
+  }
+  Future<void> onTapCreateNewBatch(BuildContext context) async {
+    String batch = '';
+    String? errMsg;
+    final res = await showModalBottomSheet<String?>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setState2) {
+          return Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                        labelText: 'Name of Batch',
+                        errorText: errMsg,
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16))),
+                    onChanged: (value) {
+                      batch = value;
+                    },
+                  ),
+                ),
+                TextButton(
+                    onPressed: () async {
+                      if (batch.isEmpty) {
+                        errMsg = 'Batch name cannot be empty';
+                      } else if (AppDataProvider.of(context)
+                          .appData
+                          .studentBatch
+                          .value
+                          .toSet()
+                          .contains(batch)) {
+                        errMsg = 'Batch name already exists';
+                      } else {
+                        errMsg = null;
+                      }
+
+                      if (errMsg == null) {
+                        Navigator.pop(context, batch);
+                      } else {
+                        setState2(() {});
+                      }
+                      // for (int i = 0;
+                      //     i <
+                      //         AppDataProvider.of(context)
+                      //             .appData
+                      //             .studentBatch
+                      //             .value
+                      //             .length;
+                      //     i++) {
+                      //   if (batch ==
+                      //       AppDataProvider.of(context)
+                      //           .appData
+                      //           .studentBatch
+                      //           .value[i]) {
+                      //     isInvalid = true;
+                      //     break;
+                      //   }
+                      // }
+                      // if (isInvalid) setState2(() {});
+                      // else
+                      //   Navigator.pop(context, batch);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.blueAccent,
+                          borderRadius: BorderRadius.circular(8)),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'Save',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                    ))
+              ],
+            ),
+          );
+        });
+      },
+    );
+    if (res != null && res.isNotEmpty) {
+      AppDataProvider.of(context).appData.createBatchName(res);
+    }
+  }
+
+
+  void studentListOnTapEdit(BuildContext context, String batchName) {
+    Future.delayed(
+      const Duration(seconds: 0),
+          () async {
+        String newBatchName = '';
+        final ValueNotifier<bool> _isInvalid = ValueNotifier<bool>(false);
+        var res = await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return Dialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'Edit Batch Name',
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ValueListenableBuilder(
+                        valueListenable: _isInvalid,
+                        builder: (BuildContext context, bool isInvalid, _) {
+                          return TextField(
+                              controller:
+                              TextEditingController(text: batchName),
+                              decoration: InputDecoration(
+                                  labelText: 'Batch Name',
+                                  errorText: isInvalid
+                                      ? 'The name already exists'
+                                      : null,
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16))),
+                              onChanged: (value) {
+                                newBatchName = value;
+                              });
+                        }),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      final batchNames = await AppDataProvider.of(context)
+                          .appData
+                          .getBatchNames();
+                      _isInvalid.value = false;
+                      for (int i = 0; i < batchNames.length; i++) {
+                        if (newBatchName == batchNames[i]) {
+                          _isInvalid.value = true;
+                          break;
+                        }
+                      }
+                      if (!_isInvalid.value) Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.blueAccent,
+                          borderRadius: BorderRadius.circular(12)),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'Save',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            );
+          },
+        );
+        AppDataProvider.of(context)
+            .appData
+            .updateBatchName(batchName, newBatchName);
+        batchName = newBatchName;
+      },
+    );
+  }
+
 
   Widget buildCechraStudentsList(BuildContext context) {
     final studentData = [
@@ -299,6 +530,8 @@ class HomeScreen extends StatelessWidget {
 class CustomSearchDelegate extends SearchDelegate {
   @override
   List<Widget>? buildActions(BuildContext context) {
+    var matchQuery = getAllStudents(context, query);
+    print('matchQuery --> ${matchQuery}');
     return [
       IconButton(
           onPressed: () {
@@ -320,7 +553,7 @@ class CustomSearchDelegate extends SearchDelegate {
   @override
   Widget buildResults(BuildContext context) {
     var matchQuery = getAllStudents(context, query);
-
+ print('matchQuery --> ${matchQuery}');
     return ListView.builder(
       itemCount: matchQuery.length,
       itemBuilder: (context, index) {
@@ -348,7 +581,9 @@ class CustomSearchDelegate extends SearchDelegate {
 }
 
 List<String> getAllStudents(BuildContext context, String query) {
+  AppDataProvider.of(context).appData.getAllStudents();
   var allStudents = AppDataProvider.of(context).appData.allStudents;
+  print('allStudents --> ${allStudents.value}');
   List<String> matchQuery = [];
   for (int i = 0; i < allStudents.value.length; i++) {
     if (allStudents.value[i].name.toLowerCase().contains(query.toLowerCase())) {

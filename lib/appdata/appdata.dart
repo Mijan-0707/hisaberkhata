@@ -285,9 +285,13 @@ class AppData {
     List<StudentDetails> allStudents = [];
     final batchNames = await getBatchNames();
     for (int i = 0; i < batchNames.length; i++) {
+      print(' batchNames --> ${batchNames[i]}');
       final students = await getStudents(batchNames[i]);
+      print('students --> ${students}');
       allStudents = [...allStudents, ...students];
+      print('allStudents Appdata --> ${allStudents}');
     }
+    allStudents.sort((a, b) => a.name.compareTo(b.name));
     this.allStudents.value = allStudents;
     return allStudents;
   }
