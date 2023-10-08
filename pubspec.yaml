@@ -44,6 +44,7 @@ dependencies:
   file_picker: ^5.2.10
   isar: 3.1.0+1
   isar_flutter_libs: 3.1.0+1
+  toggle_switch: ^2.1.0
 
 dev_dependencies:
   isar_generator: 3.1.0+1

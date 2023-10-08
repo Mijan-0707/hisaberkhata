@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class ProfileIconCreator extends StatelessWidget {
-  final String name;
+  String? name;
   final double size;
   ProfileIconCreator({super.key, required this.name, this.size = 50});
   List<Color> colors = const [
@@ -23,7 +23,7 @@ class ProfileIconCreator extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(shape: BoxShape.circle, color: colors[index]),
       child: Text(
-        name.isEmpty ? name : name[0].toUpperCase(),
+        name!.isEmpty ? name! : name![0].toUpperCase(),
         style: TextStyle(fontSize: size * .8, fontWeight: FontWeight.bold),
       ),
     );

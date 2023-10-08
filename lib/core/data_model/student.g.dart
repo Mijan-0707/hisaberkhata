@@ -22,10 +22,10 @@ const StudentSchema = CollectionSchema(
       name: r'address',
       type: IsarType.string,
     ),
-    r'batch': PropertySchema(
+    r'batchId': PropertySchema(
       id: 1,
-      name: r'batch',
-      type: IsarType.string,
+      name: r'batchId',
+      type: IsarType.long,
     ),
     r'mobile': PropertySchema(
       id: 2,
@@ -104,12 +104,6 @@ int _studentEstimateSize(
     }
   }
   {
-    final value = object.batch;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
     final value = object.mobile;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -167,7 +161,7 @@ void _studentSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.address);
-  writer.writeString(offsets[1], object.batch);
+  writer.writeLong(offsets[1], object.batchId);
   writer.writeString(offsets[2], object.mobile);
   writer.writeString(offsets[3], object.mobile2);
   writer.writeString(offsets[4], object.name);
@@ -185,7 +179,7 @@ Student _studentDeserialize(
 ) {
   final object = Student();
   object.address = reader.readStringOrNull(offsets[0]);
-  object.batch = reader.readStringOrNull(offsets[1]);
+  object.batchId = reader.readLongOrNull(offsets[1]);
   object.id = id;
   object.mobile = reader.readStringOrNull(offsets[2]);
   object.mobile2 = reader.readStringOrNull(offsets[3]);
@@ -207,7 +201,7 @@ P _studentDeserializeProp<P>(
     case 0:
       return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
@@ -625,148 +619,71 @@ extension StudentQueryFilter
     });
   }
 
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchIsNull() {
+  QueryBuilder<Student, Student, QAfterFilterCondition> batchIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'batch',
+        property: r'batchId',
       ));
     });
   }
 
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchIsNotNull() {
+  QueryBuilder<Student, Student, QAfterFilterCondition> batchIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'batch',
+        property: r'batchId',
       ));
     });
   }
 
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<Student, Student, QAfterFilterCondition> batchIdEqualTo(
+      int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'batch',
+        property: r'batchId',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchGreaterThan(
-    String? value, {
+  QueryBuilder<Student, Student, QAfterFilterCondition> batchIdGreaterThan(
+    int? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'batch',
+        property: r'batchId',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchLessThan(
-    String? value, {
+  QueryBuilder<Student, Student, QAfterFilterCondition> batchIdLessThan(
+    int? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'batch',
+        property: r'batchId',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchBetween(
-    String? lower,
-    String? upper, {
+  QueryBuilder<Student, Student, QAfterFilterCondition> batchIdBetween(
+    int? lower,
+    int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'batch',
+        property: r'batchId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'batch',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'batch',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'batch',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'batch',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'batch',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Student, Student, QAfterFilterCondition> batchIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'batch',
-        value: '',
       ));
     });
   }
@@ -1962,15 +1879,15 @@ extension StudentQuerySortBy on QueryBuilder<Student, Student, QSortBy> {
     });
   }
 
-  QueryBuilder<Student, Student, QAfterSortBy> sortByBatch() {
+  QueryBuilder<Student, Student, QAfterSortBy> sortByBatchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'batch', Sort.asc);
+      return query.addSortBy(r'batchId', Sort.asc);
     });
   }
 
-  QueryBuilder<Student, Student, QAfterSortBy> sortByBatchDesc() {
+  QueryBuilder<Student, Student, QAfterSortBy> sortByBatchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'batch', Sort.desc);
+      return query.addSortBy(r'batchId', Sort.desc);
     });
   }
 
@@ -2061,15 +1978,15 @@ extension StudentQuerySortThenBy
     });
   }
 
-  QueryBuilder<Student, Student, QAfterSortBy> thenByBatch() {
+  QueryBuilder<Student, Student, QAfterSortBy> thenByBatchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'batch', Sort.asc);
+      return query.addSortBy(r'batchId', Sort.asc);
     });
   }
 
-  QueryBuilder<Student, Student, QAfterSortBy> thenByBatchDesc() {
+  QueryBuilder<Student, Student, QAfterSortBy> thenByBatchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'batch', Sort.desc);
+      return query.addSortBy(r'batchId', Sort.desc);
     });
   }
 
@@ -2167,10 +2084,9 @@ extension StudentQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Student, Student, QDistinct> distinctByBatch(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Student, Student, QDistinct> distinctByBatchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'batch', caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'batchId');
     });
   }
 
@@ -2237,9 +2153,9 @@ extension StudentQueryProperty
     });
   }
 
-  QueryBuilder<Student, String?, QQueryOperations> batchProperty() {
+  QueryBuilder<Student, int?, QQueryOperations> batchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'batch');
+      return query.addPropertyName(r'batchId');
     });
   }
 

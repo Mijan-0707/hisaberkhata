@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hisaberkhata/core/data_model/batch.dart';
+import 'package:hisaberkhata/core/data_model/student.dart';
 import 'package:hisaberkhata/core/theme/app_theme.dart';
+import 'package:hisaberkhata/feature/batch/screen/batch_info_screen.dart';
 import 'package:hisaberkhata/feature/home/widget/batch_tile.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +15,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppDataProvider.of(context).appData.getBatches();
     return Scaffold(
       appBar: buildAppBar(context),
       body: SingleChildScrollView(
@@ -29,7 +33,7 @@ class HomeScreen extends StatelessWidget {
             buildBatchList(context),
             const SizedBox(height: 32),
             // buildSectionTitle(context, 'Bandor Students'),
-            buildCechraStudentsList(context),
+            // buildCechraStudentsList(context),
             const SizedBox(height: 32),
           ],
         ),
@@ -151,72 +155,62 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget buildBatchList(BuildContext context) {
-    var batchNames = AppDataProvider.of(context).appData.studentBatch;
-    // final batchData = [
-    //   {
-    //     'name': 'Physics',
-    //     'description': 'Physics Batch of class 10',
-    //     'students': 10,
-    //     'weekDays': ['Mon', 'Wed', 'Fri'],
-    //     'time': '10:00 AM',
-    //     'isActive': true,
-    //   },
-    //   {
-    //     'name': 'Chemistry',
-    //     'description': 'Chemistry Batch of class 10',
-    //     'students': 10,
-    //     'weekDays': ['Mon', 'Wed', 'Fri'],
-    //     'time': '10:00 AM',
-    //     'isActive': true,
-    //   },
-    //   {
-    //     'name': 'Math',
-    //     'description': 'Math Batch of class 10',
-    //     'students': 10,
-    //     'weekDays': ['Mon', 'Wed', 'Fri'],
-    //     'time': '10:00 AM',
-    //     'isActive': true,
-    //   },
-    // ];
+    var batches = AppDataProvider.of(context).appData.studentBatch;
     return SizedBox(
       height: 250,
       child: ValueListenableBuilder(
-          valueListenable: batchNames,
-          builder: (context, batchName, _) {
-            batchName.sort((a, b) => a.compareTo(b));
+          valueListenable: batches,
+          builder: (context, batches, _) {
+            batches.sort((a, b) => a.name!.compareTo(b.name!));
             return ListView.builder(
               physics: const BouncingScrollPhysics(),
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemBuilder: (context, index) => index < batchName.length
+              itemBuilder: (context, index) => index < batches.length
                   ? BatchTile(
-                      batch: batchName[index],
+                      batch: batches[index].name,
                       menuMap: {
-                        'Edit': () => studentListOnTapEdit(context, batchName[index]),
-                        'Delete': () => studentListOnTapDelete(context, batchName[index]),
+                        'Edit': () {},
+                        // studentListOnTapEdit(context, batches[index]),
+                        'Delete': () {}
+                        // studentListOnTapDelete(context, batches[index]),
                       },
-                onTapBody: ()async{
-                  await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => StudentListPage(batchName: batchName[index],)));
-                  AppDataProvider.of(context).appData.students.value = [];
-                },
-                onTapAdd: ()async{final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => StudentInfoScreen(batchName: batchName[index],),
-                    ));
-                if (result == null) return;
-                AppDataProvider.of(context).appData.addNewStudent(batchName[index], result);},
-
+                      onTapBody: () async {
+                        await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => StudentListPage(
+                                      batchId: batches[index].id,
+                                    )));
+                        AppDataProvider.of(context).appData.students.value = [];
+                      },
+                      onTapAdd: () async {
+                        Student result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  StudentInfoScreen(batchId: batches[index].id),
+                            ));
+                        print('result --> ${result}');
+                        // if (result == null || result is! Student) return;
+                        AppDataProvider.of(context)
+                            .appData
+                            .addNewStudent(result);
+                      },
                     )
                   : BatchTile.empty(
-                onTapEmptyCard: ()async{
-                  await onTapCreateNewBatch(context);
-                },
-              ),
-              itemCount: batchName.length + 1,
+                      onTapEmptyCard: () async {
+                        Batch result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BatchInfoScreen(),
+                            ));
+                        print(result);
+                        if (result == null || result is! Batch) return;
+                        AppDataProvider.of(context).appData.createBatch(result);
+                      },
+                    ),
+              itemCount: batches.length + 1,
             );
           }),
     );
@@ -225,7 +219,7 @@ class HomeScreen extends StatelessWidget {
   void studentListOnTapDelete(BuildContext context, String batchName) {
     Future.delayed(
       const Duration(seconds: 0),
-          () async {
+      () async {
         final result = await showDialog<bool>(
           context: context,
           builder: (context) {
@@ -261,231 +255,210 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-  Future<void> onTapCreateNewBatch(BuildContext context) async {
-    String batch = '';
-    String? errMsg;
-    final res = await showModalBottomSheet<String?>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setState2) {
-          return Padding(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(
-                        labelText: 'Name of Batch',
-                        errorText: errMsg,
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16))),
-                    onChanged: (value) {
-                      batch = value;
-                    },
-                  ),
-                ),
-                TextButton(
-                    onPressed: () async {
-                      if (batch.isEmpty) {
-                        errMsg = 'Batch name cannot be empty';
-                      } else if (AppDataProvider.of(context)
-                          .appData
-                          .studentBatch
-                          .value
-                          .toSet()
-                          .contains(batch)) {
-                        errMsg = 'Batch name already exists';
-                      } else {
-                        errMsg = null;
-                      }
 
-                      if (errMsg == null) {
-                        Navigator.pop(context, batch);
-                      } else {
-                        setState2(() {});
-                      }
-                      // for (int i = 0;
-                      //     i <
-                      //         AppDataProvider.of(context)
-                      //             .appData
-                      //             .studentBatch
-                      //             .value
-                      //             .length;
-                      //     i++) {
-                      //   if (batch ==
-                      //       AppDataProvider.of(context)
-                      //           .appData
-                      //           .studentBatch
-                      //           .value[i]) {
-                      //     isInvalid = true;
-                      //     break;
-                      //   }
-                      // }
-                      // if (isInvalid) setState2(() {});
-                      // else
-                      //   Navigator.pop(context, batch);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.blueAccent,
-                          borderRadius: BorderRadius.circular(8)),
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Save',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ))
-              ],
-            ),
-          );
-        });
-      },
-    );
-    if (res != null && res.isNotEmpty) {
-      AppDataProvider.of(context).appData.createBatchName(res);
-    }
-  }
+  // Future<void> onTapCreateNewBatch(BuildContext context) async {
+  //   String batch = '';
+  //   String? errMsg;
+  //   final res = await showModalBottomSheet<String?>(
+  //     context: context,
+  //     builder: (context) {
+  //       return StatefulBuilder(builder: (context, setState2) {
+  //         return Padding(
+  //           padding: EdgeInsets.only(
+  //               bottom: MediaQuery.of(context).viewInsets.bottom),
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Padding(
+  //                 padding: const EdgeInsets.all(8.0),
+  //                 child: TextField(
+  //                   keyboardType: TextInputType.text,
+  //                   decoration: InputDecoration(
+  //                       labelText: 'Name of Batch',
+  //                       errorText: errMsg,
+  //                       border: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(16))),
+  //                   onChanged: (value) {
+  //                     batch = value;
+  //                   },
+  //                 ),
+  //               ),
+  //               TextButton(
+  //                   onPressed: () async {
+  //                     if (batch.isEmpty) {
+  //                       errMsg = 'Batch name cannot be empty';
+  //                     } else if (AppDataProvider.of(context)
+  //                         .appData
+  //                         .studentBatch
+  //                         .value
+  //                         .toSet()
+  //                         .contains(batch)) {
+  //                       errMsg = 'Batch name already exists';
+  //                     } else {
+  //                       errMsg = null;
+  //                     }
 
+  //                     if (errMsg == null) {
+  //                       Navigator.pop(context, batch);
+  //                     } else {
+  //                       setState2(() {});
+  //                     }
+  //                   },
+  //                   child: Container(
+  //                     decoration: BoxDecoration(
+  //                         color: Colors.blueAccent,
+  //                         borderRadius: BorderRadius.circular(8)),
+  //                     child: const Padding(
+  //                       padding: EdgeInsets.all(8.0),
+  //                       child: Text(
+  //                         'Save',
+  //                         style: TextStyle(color: Colors.white, fontSize: 16),
+  //                       ),
+  //                     ),
+  //                   ))
+  //             ],
+  //           ),
+  //         );
+  //       });
+  //     },
+  //   );
+  //   if (res != null && res.isNotEmpty) {
+  //     AppDataProvider.of(context).appData.createBatchName(res);
+  //   }
+  // }
 
-  void studentListOnTapEdit(BuildContext context, String batchName) {
-    Future.delayed(
-      const Duration(seconds: 0),
-          () async {
-        String newBatchName = '';
-        final ValueNotifier<bool> _isInvalid = ValueNotifier<bool>(false);
-        var res = await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return Dialog(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      'Edit Batch Name',
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ValueListenableBuilder(
-                        valueListenable: _isInvalid,
-                        builder: (BuildContext context, bool isInvalid, _) {
-                          return TextField(
-                              controller:
-                              TextEditingController(text: batchName),
-                              decoration: InputDecoration(
-                                  labelText: 'Batch Name',
-                                  errorText: isInvalid
-                                      ? 'The name already exists'
-                                      : null,
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16))),
-                              onChanged: (value) {
-                                newBatchName = value;
-                              });
-                        }),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final batchNames = await AppDataProvider.of(context)
-                          .appData
-                          .getBatchNames();
-                      _isInvalid.value = false;
-                      for (int i = 0; i < batchNames.length; i++) {
-                        if (newBatchName == batchNames[i]) {
-                          _isInvalid.value = true;
-                          break;
-                        }
-                      }
-                      if (!_isInvalid.value) Navigator.pop(context);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.blueAccent,
-                          borderRadius: BorderRadius.circular(12)),
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Save',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            );
-          },
-        );
-        AppDataProvider.of(context)
-            .appData
-            .updateBatchName(batchName, newBatchName);
-        batchName = newBatchName;
-      },
-    );
-  }
+  // void studentListOnTapEdit(BuildContext context, String batchName) {
+  //   Future.delayed(
+  //     const Duration(seconds: 0),
+  //     () async {
+  //       String newBatchName = '';
+  //       final ValueNotifier<bool> _isInvalid = ValueNotifier<bool>(false);
+  //       var res = await showDialog(
+  //         context: context,
+  //         barrierDismissible: false,
+  //         builder: (context) {
+  //           return Dialog(
+  //             child: Column(
+  //               mainAxisSize: MainAxisSize.min,
+  //               children: [
+  //                 const Padding(
+  //                   padding: EdgeInsets.all(8.0),
+  //                   child: Text(
+  //                     'Edit Batch Name',
+  //                     style: TextStyle(
+  //                         fontSize: 16,
+  //                         color: Colors.blue,
+  //                         fontWeight: FontWeight.bold),
+  //                   ),
+  //                 ),
+  //                 Padding(
+  //                   padding: const EdgeInsets.all(8.0),
+  //                   child: ValueListenableBuilder(
+  //                       valueListenable: _isInvalid,
+  //                       builder: (BuildContext context, bool isInvalid, _) {
+  //                         return TextField(
+  //                             controller:
+  //                                 TextEditingController(text: batchName),
+  //                             decoration: InputDecoration(
+  //                                 labelText: 'Batch Name',
+  //                                 errorText: isInvalid
+  //                                     ? 'The name already exists'
+  //                                     : null,
+  //                                 border: OutlineInputBorder(
+  //                                     borderRadius: BorderRadius.circular(16))),
+  //                             onChanged: (value) {
+  //                               newBatchName = value;
+  //                             });
+  //                       }),
+  //                 ),
+  //                 TextButton(
+  //                   onPressed: () async {
+  //                     final batches = await AppDataProvider.of(context)
+  //                         .appData
+  //                         .getBatchNames();
+  //                     _isInvalid.value = false;
+  //                     for (int i = 0; i < batches.length; i++) {
+  //                       if (newBatchName == batches[i]) {
+  //                         _isInvalid.value = true;
+  //                         break;
+  //                       }
+  //                     }
+  //                     if (!_isInvalid.value) Navigator.pop(context);
+  //                   },
+  //                   child: Container(
+  //                     decoration: BoxDecoration(
+  //                         color: Colors.blueAccent,
+  //                         borderRadius: BorderRadius.circular(12)),
+  //                     child: const Padding(
+  //                       padding: EdgeInsets.all(8.0),
+  //                       child: Text(
+  //                         'Save',
+  //                         style: TextStyle(color: Colors.white, fontSize: 16),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 )
+  //               ],
+  //             ),
+  //           );
+  //         },
+  //       );
+  //       AppDataProvider.of(context)
+  //           .appData
+  //           .updateBatchName(batchName, newBatchName);
+  //       batchName = newBatchName;
+  //     },
+  //   );
+  // }
 
-
-  Widget buildCechraStudentsList(BuildContext context) {
-    final studentData = [
-      {
-        'name': 'Sharif Khan',
-        'due': 3,
-      },
-      {
-        'name': 'Mijan Khan',
-        'due': 3,
-      },
-      {
-        'name': 'Rahim Khan',
-        'due': 3,
-      },
-      {
-        'name': 'Karim Khan',
-        'due': 3,
-      },
-      {
-        'name': 'Sharif Khan',
-        'due': 3,
-      },
-      {
-        'name': 'Mijan Khan',
-        'due': 3,
-      },
-      {
-        'name': 'Rahim Khan',
-        'due': 3,
-      },
-      {
-        'name': 'Karim Khan',
-        'due': 3,
-      },
-    ];
-    return SizedBox(
-      height: MediaQuery.of(context).size.width * .35,
-      child: ListView.separated(
-        physics: const BouncingScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        separatorBuilder: (context, index) => const SizedBox(width: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemBuilder: (context, index) =>
-            buildStudentTile(context, studentData[index]),
-        itemCount: studentData.length,
-      ),
-    );
-  }
+  // Widget buildCechraStudentsList(BuildContext context) {
+  //   final studentData = [
+  //     {
+  //       'name': 'Sharif Khan',
+  //       'due': 3,
+  //     },
+  //     {
+  //       'name': 'Mijan Khan',
+  //       'due': 3,
+  //     },
+  //     {
+  //       'name': 'Rahim Khan',
+  //       'due': 3,
+  //     },
+  //     {
+  //       'name': 'Karim Khan',
+  //       'due': 3,
+  //     },
+  //     {
+  //       'name': 'Sharif Khan',
+  //       'due': 3,
+  //     },
+  //     {
+  //       'name': 'Mijan Khan',
+  //       'due': 3,
+  //     },
+  //     {
+  //       'name': 'Rahim Khan',
+  //       'due': 3,
+  //     },
+  //     {
+  //       'name': 'Karim Khan',
+  //       'due': 3,
+  //     },
+  //   ];
+  //   return SizedBox(
+  //     height: MediaQuery.of(context).size.width * .35,
+  //     child: ListView.separated(
+  //       physics: const BouncingScrollPhysics(),
+  //       scrollDirection: Axis.horizontal,
+  //       separatorBuilder: (context, index) => const SizedBox(width: 4),
+  //       padding: const EdgeInsets.symmetric(horizontal: 16),
+  //       itemBuilder: (context, index) =>
+  //           buildStudentTile(context, studentData[index]),
+  //       itemCount: studentData.length,
+  //     ),
+  //   );
+  // }
 
   Widget buildStudentTile(BuildContext context, Map<String, dynamic> student) {
     return Card(
@@ -530,8 +503,8 @@ class HomeScreen extends StatelessWidget {
 class CustomSearchDelegate extends SearchDelegate {
   @override
   List<Widget>? buildActions(BuildContext context) {
-    var matchQuery = getAllStudents(context, query);
-    print('matchQuery --> ${matchQuery}');
+    // List<Student> matchQuery = filteredStudents(context, query);
+    // print('matchQuery --> ${matchQuery}');
     return [
       IconButton(
           onPressed: () {
@@ -552,14 +525,14 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    var matchQuery = getAllStudents(context, query);
- print('matchQuery --> ${matchQuery}');
+    List<Student> matchQuery = filteredStudents(context, query);
+    print('Query --> $matchQuery');
     return ListView.builder(
       itemCount: matchQuery.length,
       itemBuilder: (context, index) {
-        var result = matchQuery[index];
+        Student result = matchQuery[index];
         return ListTile(
-          title: Text(result),
+          title: Text(result.name!),
         );
       },
     );
@@ -567,28 +540,30 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    List<String> matchQuery = getAllStudents(context, query);
+    List<Student> matchQuery = filteredStudents(context, query);
+    print('Query --> $matchQuery');
     return ListView.builder(
       itemCount: matchQuery.length,
       itemBuilder: (context, index) {
         var result = matchQuery[index];
         return ListTile(
-          title: Text(result),
+          title: Text(result.name!),
         );
       },
     );
   }
 }
 
-List<String> getAllStudents(BuildContext context, String query) {
-  AppDataProvider.of(context).appData.getAllStudents();
-  var allStudents = AppDataProvider.of(context).appData.allStudents;
-  print('allStudents --> ${allStudents.value}');
-  List<String> matchQuery = [];
-  for (int i = 0; i < allStudents.value.length; i++) {
-    if (allStudents.value[i].name.toLowerCase().contains(query.toLowerCase())) {
-      matchQuery.add(allStudents.value[i].name);
+List<Student> filteredStudents(BuildContext context, String query) {
+  AppDataProvider.of(context).appData.getStudents();
+  List<Student> students = AppDataProvider.of(context).appData.students.value;
+  print('Students --> $students');
+  List<Student> matchQuery = [];
+  for (int i = 0; i < students.length; i++) {
+    if (students[i].name!.toLowerCase().contains(query.toLowerCase())) {
+      matchQuery.add(students[i]);
     }
   }
+  print('Match query --> $matchQuery');
   return matchQuery;
 }

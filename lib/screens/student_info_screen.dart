@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hisaberkhata/core/data_model/student.dart';
+import 'package:hisaberkhata/screens/inherited_widget.dart';
 import '../appdata/student_details_data_model.dart';
 
 class StudentInfoScreen extends StatelessWidget {
-  var batchName;
-  final StudentDetails details;
-  StudentInfoScreen({super.key, required this.batchName})
-      : details = StudentDetails();
-  StudentInfoScreen.update(
-      {super.key, required this.batchName, required this.details});
+  final Student details;
+  final int? batchId;
+  StudentInfoScreen({super.key, this.batchId}) : details = Student();
+  StudentInfoScreen.update({super.key, required this.details, this.batchId});
 
   ValueNotifier<bool> isInvalid = ValueNotifier(false);
   late final nameController = TextEditingController(text: details.name);
@@ -20,6 +20,7 @@ class StudentInfoScreen extends StatelessWidget {
   );
   @override
   Widget build(BuildContext context) {
+    print(batchId);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -114,6 +115,7 @@ class StudentInfoScreen extends StatelessWidget {
                 details.section = sectionController.text;
                 details.address = addressController.text;
                 details.mobile = mobileController.text;
+                details.batchId = batchId;
                 Navigator.pop(context, details);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hisaberkhata/core/data_model/batch.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
 import 'package:hisaberkhata/screens/studentlist.dart';
 
@@ -7,7 +8,7 @@ class HomeScreenOld extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppDataProvider.of(context).appData.getBatchNames();
+    // AppDataProvider.of(context).appData.getBatchNames();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -65,10 +66,10 @@ class HomeScreenOld extends StatelessWidget {
               child: ListView(
                 children: [
                   for (int i = 0; i < studentBatch.length; i++)
-                    BatchItemWidget(studentBatch[i], onTap: () {
-                      onTapBatchName(context, studentBatch[i]);
+                    BatchItemWidget(studentBatch[i].name!, onTap: () {
+                      // onTapBatchName(context, studentBatch[i]);
                     }, onLongPress: () {
-                      onLongPressBatchName(context, studentBatch[i]);
+                      // onLongPressBatchName(context, studentBatch[i]);
                     }),
                 ],
               ),
@@ -164,17 +165,17 @@ class HomeScreenOld extends StatelessWidget {
       },
     );
     if (res != null && res.isNotEmpty) {
-      AppDataProvider.of(context).appData.createBatchName(res);
+      // AppDataProvider.of(context).appData.createBatchName(res);
     }
   }
 
-  Future<void> onTapBatchName(BuildContext context, String name) async {
-    await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => StudentListPage(batchName: name)));
-    AppDataProvider.of(context).appData.students.value = [];
-  }
+  // Future<void> onTapBatchName(BuildContext context, String name) async {
+  //   await Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //           builder: (context) => StudentListPage(batchId: )));
+  //   AppDataProvider.of(context).appData.students.value = [];
+  // }
 
   Future<dynamic> onLongPressBatchName(BuildContext context, String name) {
     return showModalBottomSheet(

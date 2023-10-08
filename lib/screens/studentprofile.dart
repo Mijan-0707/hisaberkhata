@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
+import 'package:hisaberkhata/core/data_model/student.dart';
 import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hisaberkhata/widgets/profileicon.dart';
@@ -8,22 +9,25 @@ import 'package:hisaberkhata/screens/homescreen.dart';
 import 'inherited_widget.dart';
 
 class StudentProfile extends StatelessWidget {
-  StudentProfile({super.key, required this.batchName, required this.stuIndex});
+  StudentProfile({
+    super.key,
+    required this.details,
+  });
 
-  final String batchName;
-  final int stuIndex;
+  final Student details;
+  // final int stuIndex;
   bool editPayment = false;
-  ValueNotifier<StudentDetails> detailsValue = ValueNotifier(StudentDetails());
 
   @override
   Widget build(BuildContext context) {
-    AppDataProvider.of(context)
-        .appData
-        .getStudentDetails(batchName, stuIndex)
-        .then((value) {
-      detailsValue.value = value;
-      print(detailsValue.value.name);
-    });
+    ValueNotifier<Student> detailsValue = ValueNotifier(details);
+    // AppDataProvider.of(context)
+    //     .appData
+    //     .getStudentDetails(batchName, stuIndex)
+    //     .then((value) {
+    //   detailsValue.value = value;
+    //   print(detailsValue.value.name);
+    // });
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
@@ -32,7 +36,7 @@ class StudentProfile extends StatelessWidget {
               context: context,
               builder: (context) {
                 return ValueListenableBuilder(
-                    valueListenable: detailsValue,
+                    valueListenable: detailsValue!,
                     builder: (context, details, _) {
                       return ListView(
                         children: [
@@ -48,13 +52,13 @@ class StudentProfile extends StatelessWidget {
                                 var month = AppDataProvider.of(context)
                                     .appData
                                     .payableMonths[i];
-                                details.paymentHistory.add(month);
+                                details.paymentHistory!.add(month);
                                 Navigator.pop(context);
-                                AppDataProvider.of(context)
-                                    .appData
-                                    .updateStudentDetails(
-                                        details.batch, stuIndex, details);
-                                detailsValue.notifyListeners();
+                                // AppDataProvider.of(context)
+                                //     .appData
+                                //     .updateStudentDetails(
+                                //         details.batch, details);
+                                detailsValue!.notifyListeners();
                               },
                               child: Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -68,9 +72,6 @@ class StudentProfile extends StatelessWidget {
                                       AppDataProvider.of(context)
                                           .appData
                                           .payableMonths[i],
-                                      style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
                                     ),
                                   )),
                             ),
@@ -79,9 +80,9 @@ class StudentProfile extends StatelessWidget {
                     });
               },
             );
-            AppDataProvider.of(context)
-                .appData
-                .updateStudentDetails(batchName, stuIndex, detailsValue.value);
+            // AppDataProvider.of(context)
+            //     .appData
+            //     .updateStudentDetails(batchName, stuIndex, detailsValue.value);
             print('object');
           },
           child: const Icon(Icons.add)),
@@ -98,18 +99,14 @@ class StudentProfile extends StatelessWidget {
                         Future.delayed(
                           const Duration(seconds: 0),
                           () async {
-                            studentListtileOnTapEdit(context,
-                                detailsValue.value, stuIndex, batchName);
-                            AppDataProvider.of(context)
-                                .appData
-                                .updateStudentDetails(
-                                    batchName, stuIndex, detailsValue.value);
+                            studentListtileOnTapEdit(
+                                context, details, details.id);
                           },
                         );
                       } else if (choice == 'Delete') {
                         AppDataProvider.of(context)
                             .appData
-                            .deleteStudentDetails(batchName, stuIndex);
+                            .deleteStudentDetails(details);
                         Future.delayed(
                           const Duration(seconds: 0),
                           () {
@@ -128,7 +125,7 @@ class StudentProfile extends StatelessWidget {
         ],
       ),
       body: ValueListenableBuilder(
-          valueListenable: detailsValue,
+          valueListenable: detailsValue!,
           builder: (context, details, _) {
             print('-> inside ValueListenableBuilder : ${details.name}');
             return ListView(
@@ -138,10 +135,10 @@ class StudentProfile extends StatelessWidget {
                   decoration: const BoxDecoration(color: Colors.blue),
                   child: Row(
                     children: [
-                      Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: ProfileIconCreator(
-                              name: details.name, size: 120)),
+                      // Padding(
+                      //     padding: const EdgeInsets.only(left: 8),
+                      //     child: ProfileIconCreator(
+                      //         name: details.name, size: 120)),
                       const SizedBox(
                         width: 20,
                       ),
@@ -166,14 +163,16 @@ class StudentProfile extends StatelessWidget {
                                   fontSize: 20, color: Colors.white),
                             ),
                             Text(
-                              details.payment,
+                              '',
+                              // details.payment,
                               style: const TextStyle(
                                   fontSize: 20, color: Colors.white),
                             ),
                             Row(
                               children: [
                                 Text(
-                                  details.mobile,
+                                  // details.mobile,
+                                  '',
                                   style: const TextStyle(
                                       fontSize: 20, color: Colors.white),
                                 ),
@@ -200,7 +199,8 @@ class StudentProfile extends StatelessWidget {
                               ],
                             ),
                             Text(
-                              details.address,
+                              '',
+                              // details.address,
                               style: const TextStyle(
                                   fontSize: 20, color: Colors.white),
                             ),
@@ -210,41 +210,35 @@ class StudentProfile extends StatelessWidget {
                     ],
                   ),
                 ),
-                for (int i = 0; i < details.paymentHistory.length; i++)
-                  ListTile(
-                    title: Text(details.paymentHistory[i]),
-                    subtitle: Text('payed on ${DateTime.now()}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (editPayment == true)
-                          IconButton(
-                              onPressed: () {}, icon: const Icon(Icons.edit))
-                      ],
-                    ),
-                  )
+                // for (int i = 0; i < details.paymentHistory.length; i++)
+                ListTile(
+                  // title: Text(details.paymentHistory),
+                  subtitle: Text('payed on ${DateTime.now()}'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (editPayment == true)
+                        IconButton(
+                            onPressed: () {}, icon: const Icon(Icons.edit))
+                    ],
+                  ),
+                )
               ],
             );
           }),
     );
   }
 
-  void studentListtileOnTapEdit(BuildContext context, StudentDetails details,
-      int index, String batchName) async {
+  void studentListtileOnTapEdit(
+      BuildContext context, Student details, int batchId) async {
     var result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => StudentInfoScreen.update(
-            batchName: batchName,
             details: details,
+            batchId: batchId,
           ),
         ));
-    print('result ${result}');
-    if (result == null) return;
-    detailsValue.value = result;
-    detailsValue.notifyListeners();
-    AppDataProvider.of(context)
-        .appData
-        .updateStudentDetails(batchName, index, result);
+    AppDataProvider.of(context).appData.updateStudentDetails(result);
   }
 }

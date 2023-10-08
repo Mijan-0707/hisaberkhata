@@ -5,10 +5,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/constants/constants.dart';
+import 'package:hisaberkhata/core/data_model/batch.dart';
+import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../core/data_model/student.dart';
 
 class AppData {
   List<String> payableMonths = [
@@ -25,59 +29,40 @@ class AppData {
     'November',
     'December'
   ];
-  ValueNotifier<List<String>> studentBatch = ValueNotifier([]);
-  ValueNotifier<List<StudentDetails>> students = ValueNotifier([]);
-  ValueNotifier<List<StudentDetails>> allStudents = ValueNotifier([]);
+  ValueNotifier<List<Batch>> studentBatch = ValueNotifier([]);
+  ValueNotifier<List<Student>> students = ValueNotifier([]);
+  ValueNotifier<List<Student>> tempStudents = ValueNotifier([]);
+  Student student = Student();
 
-  Future<File?> get _localFile async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) await Permission.storage.request();
-    if (!status.isGranted) return null;
-    final Directory dir;
-    if (Platform.isAndroid) {
-      dir = Directory('/storage/emulated/0/Download/HK_backup');
-    } else {
-      dir = await getApplicationDocumentsDirectory();
-    }
-    final f = File('${dir.path}/data.json');
-    if (!(await f.exists())) await f.create(recursive: true);
-    return f;
+  Isar? isar;
+  Future<void> initialize() async {
+    final dir = await getTemporaryDirectory();
+    isar = await Isar.open([StudentSchema, BatchSchema], directory: dir.path);
   }
 
-  Future<List<String>> getBatchNames() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final batchNamesStr = prefs.getString(PreferenceConstants.batchNameKey);
-
-    if (batchNamesStr == null || batchNamesStr.isEmpty) return [];
-    List<dynamic> batchNames = jsonDecode(batchNamesStr);
-    final studentBatch = <String>[];
-    for (int i = 0; i < batchNames.length; i++) {
-      studentBatch.add(batchNames[i]);
-    }
-    this.studentBatch.value = studentBatch;
-    return studentBatch;
+  Future<void> getBatches() async {
+    List<Batch>? batchs = await isar?.batchs.where().findAll();
+    if (batchs != null) studentBatch.value = batchs;
+    print(batchs);
   }
 
-  Future createBatchName(String batch) async {
-    batch = batch.trim();
-    if (batch == '') return;
+  Future createBatch(Batch batch) async {
     studentBatch.value.add(batch);
     studentBatch.notifyListeners();
-
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final batches = await getBatchNames();
-    batches.add(batch);
-    var studentBatchJsonE = jsonEncode(batches);
-    await prefs.setString(PreferenceConstants.batchNameKey, studentBatchJsonE);
+    await isar!.writeTxn(() async {
+      await isar!.batchs.put(batch);
+    });
   }
 
-  Future addNewStudent(String batch, StudentDetails studentInfo) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (studentInfo == null) return;
-    final students = await getStudents(batch);
-    students.add(studentInfo);
-    this.students.value = students;
-    await prefs.setString(batch, jsonEncode(students));
+  Future<void> addNewStudent(Student student) async {
+    print('student name --> ${student.name}');
+    await isar!.writeTxn(() async {
+      await isar!.students.put(student);
+    });
+    students.value.add(student);
+    students.notifyListeners();
+    tempStudents.value.add(student);
+    tempStudents.notifyListeners();
   }
 
   Future<void> updateBatchName(String old, String newName) async {
@@ -95,7 +80,7 @@ class AppData {
         batchNames[i] = newName;
       }
       studentBatch.add(batchNames[i]);
-      this.studentBatch.value = studentBatch;
+      // this.studentBatch.value = studentBatch;
     }
     // print('studentBatch: ${studentBatch}');
 
@@ -127,46 +112,26 @@ class AppData {
     prefs.setString(PreferenceConstants.batchNameKey, res);
     studentBatch.remove(batchName);
 
-    this.studentBatch.value = studentBatch;
+    // this.studentBatch.value = studentBatch;
 
     print('deleted: $batchName, $res');
   }
 
-  Future<List<StudentDetails>> getStudents(String batch) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final studentsListStr = prefs.getString(batch);
-
-    if (studentsListStr == null || studentsListStr.isEmpty) return [];
-    List<dynamic> studentsList = jsonDecode(studentsListStr);
-    final students = <StudentDetails>[];
-    for (int i = 0; i < studentsList.length; i++) {
-      final s = StudentDetails(
-        name: studentsList[i]['name'],
-        mobile: studentsList[i]['mobile'],
-        address: studentsList[i]['address'],
-        roll: studentsList[i]['roll'],
-        section: studentsList[i]['section'],
-        payment: studentsList[i]['payment'],
-        batch: studentsList[i]['studentBatch'],
-      );
-
-      final records = studentsList[i]['paymentHistory'] as List?;
-      if (records != null) {
-        for (var r in records) {
-          s.paymentHistory.add(r as String);
-        }
-      }
-      students.add(s);
+  Future<void> getStudents() async {
+    List<Student>? students = await isar?.students.where().findAll();
+    print('--> ${students}');
+    if (students != null) {
+      this.students.value = students;
     }
-    this.students.value = students;
-    // print(batch);
-    // print(students.);
-    return students;
   }
 
-  Future<StudentDetails> getStudentDetails(String batchName, int index) async {
-    // final students = await getStudents(batchName);
-    return students.value[index];
+  Future<List<Student>?> getStudentsOnBatch(int batchId) async {
+    List<Student>? students =
+        await isar?.students.filter().batchIdEqualTo(batchId).findAll();
+    print('--> ${students}');
+    if (students != null) {
+      tempStudents.value = students;
+    }
   }
 
   void createBackup() async {
@@ -240,7 +205,7 @@ class AppData {
 
       for (String batch in keys) {
         await prefs.setString(batch, jsonEncode(dataMap[batch]));
-        studentBatch.value.add(batch);
+        // studentBatch.value.add(batch);
       }
       studentBatch.notifyListeners();
       // await getBatchNames();
@@ -249,16 +214,12 @@ class AppData {
     }
   }
 
-  Future<void> updateStudentDetails(
-      String batchName, int index, StudentDetails details) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final studentsListStr = prefs.getString(batchName);
-    if (studentsListStr == null || studentsListStr.isEmpty) return;
-    List<dynamic> studentsList = jsonDecode(studentsListStr);
-    studentsList[index] = details.toJson();
-    students.value[index] = details;
-    students.notifyListeners();
-    await prefs.setString(batchName, jsonEncode(studentsList));
+  Future<void> updateStudentDetails(Student details) async {
+    await isar!.writeTxn(() async {
+      await isar!.students.put(details);
+    });
+    await getStudents();
+    await getStudentsOnBatch(details.id);
   }
 
   void savePaymentHistory(StudentDetails details) async {
@@ -267,32 +228,39 @@ class AppData {
     prefs.setString(details.batch + details.name, paymentHistoryJson);
   }
 
-  void deleteStudentDetails(String batchName, int studentIndex) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final studentsListStr = prefs.getString(batchName);
-    if (studentsListStr == null || studentsListStr.isEmpty) return;
-    List<dynamic> studentsList = jsonDecode(studentsListStr);
-    // print(studentIndex);
-    // print(studentsList);
-    studentsList.removeAt(studentIndex);
-    students.value.removeAt(studentIndex);
-    students.notifyListeners();
-    // print(studentsList);
-    await prefs.setString(batchName, jsonEncode(studentsList));
+  Future<void> deleteStudentDetails(Student details) async {
+    await isar!.students.delete(details.id); // delete
+    await getStudents();
+
+    return;
   }
 
-  Future<List<StudentDetails>> getAllStudents() async {
-    List<StudentDetails> allStudents = [];
-    final batchNames = await getBatchNames();
-    for (int i = 0; i < batchNames.length; i++) {
-      print(' batchNames --> ${batchNames[i]}');
-      final students = await getStudents(batchNames[i]);
-      print('students --> ${students}');
-      allStudents = [...allStudents, ...students];
-      print('allStudents Appdata --> ${allStudents}');
-    }
-    allStudents.sort((a, b) => a.name.compareTo(b.name));
-    this.allStudents.value = allStudents;
-    return allStudents;
-  }
+  // void deleteStudentDetails(String batchName, int studentIndex) async {
+  //   final SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   final studentsListStr = prefs.getString(batchName);
+  //   if (studentsListStr == null || studentsListStr.isEmpty) return;
+  //   List<dynamic> studentsList = jsonDecode(studentsListStr);
+  //   // print(studentIndex);
+  //   // print(studentsList);
+  //   studentsList.removeAt(studentIndex);
+  //   students.value.removeAt(studentIndex);
+  //   students.notifyListeners();
+  //   // print(studentsList);
+  //   await prefs.setString(batchName, jsonEncode(studentsList));
+  // }
+
+  // Future<List<StudentDetails>> getAllStudents() async {
+  //   List<StudentDetails> allStudents = [];
+  //   final batchNames = await getBatchNames();
+  //   for (int i = 0; i < batchNames.length; i++) {
+  //     print(' batchNames --> ${batchNames[i]}');
+  //     final students = await getStudents(batchNames[i]);
+  //     print('students --> ${students}');
+  //     allStudents = [...allStudents, ...students];
+  //     print('allStudents Appdata --> ${allStudents}');
+  //   }
+  //   // allStudents.sort((a, b) => a.name.compareTo(b.name));
+  //   this.allStudents.value = allStudents;
+  //   return allStudents;
+  // }
 }

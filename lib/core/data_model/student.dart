@@ -12,7 +12,7 @@ class Student {
   String? address;
   String? roll;
   String? payment;
-  String? batch;
+  int? batchId;
   String? section;
   List<String>? paymentHistory = [];
 }
