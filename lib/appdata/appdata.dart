@@ -137,6 +137,8 @@ class AppData {
   void createBackup() async {
     final status = await Permission.manageExternalStorage.request();
     if (!status.isGranted) return;
+    isar?.copyToFile('/storage/emulated/0/Download/hisaberkhata_backup.isar');
+    return;
     final downloadDir = Directory('/storage/emulated/0/Download');
     if (!downloadDir.existsSync()) await downloadDir.create(recursive: true);
     final dirExists = downloadDir.existsSync();

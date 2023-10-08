@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/appdata.dart';
 import 'package:hisaberkhata/core/data_model/student.dart';
 import 'package:hisaberkhata/core/theme/app_theme.dart';
-import 'package:hisaberkhata/feature/batch/screen/batch_info_screen.dart';
 import 'package:hisaberkhata/feature/home/screen/home_screen.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
+import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // import 'package:hisaberkhata/screens/studentlist.dart';
@@ -54,4 +53,68 @@ main() async {
           }),
     ),
   );
+}
+
+class StreamTest extends StatelessWidget {
+  const StreamTest({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isar = AppDataProvider.of(context)!.appData.isar!;
+    final studentsStream = isar.students
+        .filter()
+        .batchIdEqualTo(1)
+    .nameContains('12').or()
+.mobileContains('12')
+        .build()
+        .watch(fireImmediately: true);
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(onPressed: () async {
+        final res = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StudentInfoScreen(batchId: 1),
+          ),
+        );
+
+        if (res != null) {
+          isar.writeTxn(() async {
+            await isar.students.put(res as Student);
+          });
+        }
+      }),
+      body: StreamBuilder(
+        stream: studentsStream,
+        builder: (context,snapshot) {
+          if (snapshot.hasData) {
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  onTap: () async {
+                    final res = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StudentInfoScreen.update(
+                            batchId: 1, details: snapshot.data![index]),
+                      ),
+                    );
+
+                    if (res != null) {
+                      isar.writeTxn(() async {
+                        await isar.students.put(res as Student);
+                      });
+                    }
+                  },
+                  title: Text(snapshot.data![index].name ?? ''),
+                  subtitle: Text(snapshot.data![index].mobile ?? ''),
+                );
+              },
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
+    );
+  }
 }
