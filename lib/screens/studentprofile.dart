@@ -21,63 +21,47 @@ class StudentProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ValueNotifier<Student> detailsValue = ValueNotifier(details);
-    // AppDataProvider.of(context)
-    //     .appData
-    //     .getStudentDetails(batchName, stuIndex)
-    //     .then((value) {
-    //   detailsValue.value = value;
-    //   print(detailsValue.value.name);
-    // });
     return Scaffold(
       floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            String payedMonth = '';
+            List<String> payedMonth = [];
             await showModalBottomSheet(
               context: context,
               builder: (context) {
-                return ValueListenableBuilder(
-                    valueListenable: detailsValue!,
-                    builder: (context, details, _) {
-                      return ListView(
-                        children: [
-                          for (int i = 0;
-                              i <
+                return StatefulBuilder(builder: (context, setState1) {
+                  return ListView.builder(
+                      itemCount: AppDataProvider.of(context)
+                          .appData
+                          .payableMonths
+                          .length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () async {
+                            var month = AppDataProvider.of(context)
+                                .appData
+                                .payableMonths[index];
+                            payedMonth.add(month);
+                            details.paymentHistory = payedMonth;
+                            Navigator.pop(context);
+                            setState1;
+                          },
+                          child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Container(
+                                alignment: Alignment.center,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    borderRadius: BorderRadius.circular(8)),
+                                child: Text(
                                   AppDataProvider.of(context)
                                       .appData
-                                      .payableMonths
-                                      .length;
-                              i++)
-                            GestureDetector(
-                              onTap: () async {
-                                var month = AppDataProvider.of(context)
-                                    .appData
-                                    .payableMonths[i];
-                                details.paymentHistory!.add(month);
-                                Navigator.pop(context);
-                                // AppDataProvider.of(context)
-                                //     .appData
-                                //     .updateStudentDetails(
-                                //         details.batch, details);
-                                detailsValue!.notifyListeners();
-                              },
-                              child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                        color: Colors.blue,
-                                        borderRadius: BorderRadius.circular(8)),
-                                    child: Text(
-                                      AppDataProvider.of(context)
-                                          .appData
-                                          .payableMonths[i],
-                                    ),
-                                  )),
-                            ),
-                        ],
-                      );
-                    });
+                                      .payableMonths[index],
+                                ),
+                              )),
+                        );
+                      });
+                });
               },
             );
             // AppDataProvider.of(context)
@@ -163,16 +147,14 @@ class StudentProfile extends StatelessWidget {
                                   fontSize: 20, color: Colors.white),
                             ),
                             Text(
-                              '',
-                              // details.payment,
+                              details.payment ?? '',
                               style: const TextStyle(
                                   fontSize: 20, color: Colors.white),
                             ),
                             Row(
                               children: [
                                 Text(
-                                  // details.mobile,
-                                  '',
+                                  details.mobile ?? '',
                                   style: const TextStyle(
                                       fontSize: 20, color: Colors.white),
                                 ),
@@ -199,8 +181,7 @@ class StudentProfile extends StatelessWidget {
                               ],
                             ),
                             Text(
-                              '',
-                              // details.address,
+                              details.address ?? '',
                               style: const TextStyle(
                                   fontSize: 20, color: Colors.white),
                             ),
@@ -210,19 +191,19 @@ class StudentProfile extends StatelessWidget {
                     ],
                   ),
                 ),
-                // for (int i = 0; i < details.paymentHistory.length; i++)
-                ListTile(
-                  // title: Text(details.paymentHistory),
-                  subtitle: Text('payed on ${DateTime.now()}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (editPayment == true)
-                        IconButton(
-                            onPressed: () {}, icon: const Icon(Icons.edit))
-                    ],
-                  ),
-                )
+                for (int i = 0; i < details.paymentHistory!.length; i++)
+                  ListTile(
+                    title: Text(details.paymentHistory![i]),
+                    subtitle: Text('payed on ${DateTime.now()}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (editPayment == true)
+                          IconButton(
+                              onPressed: () {}, icon: const Icon(Icons.edit))
+                      ],
+                    ),
+                  )
               ],
             );
           }),

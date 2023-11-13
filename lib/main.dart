@@ -60,12 +60,13 @@ class StreamTest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isar = AppDataProvider.of(context)!.appData.isar!;
+    final isar = AppDataProvider.of(context).appData.isar!;
     final studentsStream = isar.students
         .filter()
         .batchIdEqualTo(1)
-    .nameContains('12').or()
-.mobileContains('12')
+        .nameContains('12')
+        .or()
+        .mobileContains('12')
         .build()
         .watch(fireImmediately: true);
     return Scaffold(
@@ -85,7 +86,7 @@ class StreamTest extends StatelessWidget {
       }),
       body: StreamBuilder(
         stream: studentsStream,
-        builder: (context,snapshot) {
+        builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
               itemCount: snapshot.data!.length,

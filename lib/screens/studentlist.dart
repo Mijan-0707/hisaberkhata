@@ -1,183 +1,155 @@
 import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
+import 'package:hisaberkhata/core/data_model/batch.dart';
 import 'package:hisaberkhata/core/data_model/student.dart';
+import 'package:hisaberkhata/feature/home/screen/home_screen.dart';
 import 'package:hisaberkhata/screens/homescreen.dart';
 import 'package:hisaberkhata/screens/student_info_screen.dart';
 import 'package:hisaberkhata/screens/studentprofile.dart';
+import 'package:isar/isar.dart';
 import '../widgets/profileicon.dart';
 import 'inherited_widget.dart';
 import 'dart:collection';
 
 class StudentListPage extends StatelessWidget {
-  StudentListPage({super.key, required this.batchId});
-
+  StudentListPage({super.key, required this.batchId, required this.batchName});
+  String? batchName;
   int batchId;
   final searchText = TextEditingController();
-
+  // String? batchName;
   @override
   Widget build(BuildContext context) {
-    AppDataProvider.of(context).appData.getStudentsOnBatch(batchId);
+    final isar = AppDataProvider.of(context).appData.isar!;
+    var isarStream = isar.students
+        .filter()
+        .batchIdEqualTo(batchId)
+        .watch(fireImmediately: true);
+    // AppDataProvider.of(context).appData.getStudentsOnBatch(batchId);
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () async {
-          Student result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => StudentInfoScreen(
-                  batchId: batchId,
-                ),
-              ));
-          if (result == null) return;
-          AppDataProvider.of(context).appData.addNewStudent(result);
-        },
-      ),
-      appBar: AppBar(
-          centerTitle: true,
-          title: Text('batchName'),
-          actions: [
-            PopupMenuButton(
-              itemBuilder: (c) {
-                return {'Edit', 'Delete'}.map((String choice) {
-                  return PopupMenuItem(
-                      onTap: () async {
-                        // print(choice);
-                        if (choice == 'Edit') {
-                          studentListOnTapEdit(context, 'batchName');
-                        } else if (choice == 'Delete') {
-                          studentListOnTapDelete(context, 'batchName');
-                        }
-                      },
-                      value: choice,
-                      child: Text(choice));
-                }).toList();
-              },
-            )
-          ],
-          leading: IconButton(
-              onPressed: () {
-                Navigator.pop(
-                    context,
-                    MaterialPageRoute(
-                        builder: ((context) => const HomeScreenOld())));
-              },
-              icon: const Icon(Icons.arrow_back))),
-      body: ValueListenableBuilder(
-        valueListenable: AppDataProvider.of(context).appData.tempStudents,
-        builder: (context, students, _) {
-          // students.sort((a, b) => a.name.compareTo(b.name));
-          ValueNotifier<List<Student>> filteredStudentList =
-              ValueNotifier([...students]);
-          final indexList = List.generate(students.length, (index) => index);
-          return ValueListenableBuilder(
-            valueListenable: filteredStudentList,
-            builder: (context, filturedStudents, _) {
-              return studentsList(
+        floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.add),
+          onPressed: () async {
+            Student result = await Navigator.push(
                 context,
-                filturedStudents,
-                indexList,
-                (value) {
-                  print(value);
-                  filteredStudentList.value.clear();
-                  indexList.clear();
-                  for (int i = 0; i < students.length; i++) {
-                    final s = students[i];
-                    if (s.name!
-                        .toLowerCase()
-                        .contains(value.toLowerCase().trim())) {
-                      indexList.add(i);
-                      filteredStudentList.value.add(s);
-                    }
-                  }
-                  filteredStudentList.notifyListeners();
-                  print(filteredStudentList.value.length);
+                MaterialPageRoute(
+                  builder: (context) => StudentInfoScreen(
+                    batchId: batchId,
+                  ),
+                ));
+            if (result == null) return;
+            AppDataProvider.of(context).appData.addNewStudent(result);
+          },
+        ),
+        appBar: AppBar(
+            centerTitle: true,
+            // isar.batchs.get(batchId).then((value) => (value) {
+
+            // }),
+            title: Text(batchName!),
+            actions: [
+              PopupMenuButton(
+                itemBuilder: (c) {
+                  return {'Edit', 'Delete'}.map((String choice) {
+                    return PopupMenuItem(
+                        onTap: () async {
+                          // print(choice);
+                          if (choice == 'Edit') {
+                            studentListOnTapEdit(context, 'batchName');
+                          } else if (choice == 'Delete') {
+                            studentListOnTapDelete(context, 'batchName');
+                          }
+                        },
+                        value: choice,
+                        child: Text(choice));
+                  }).toList();
+                },
+              )
+            ],
+            leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(
+                      context,
+                      MaterialPageRoute(
+                          builder: ((context) => const HomeScreen())));
+                },
+                icon: const Icon(Icons.arrow_back))),
+        body: StreamBuilder(
+          stream: isarStream,
+          builder: (context, students) {
+            if (students.hasData) {
+              return ListView.builder(
+                itemCount: students.data!.length,
+                itemBuilder: (context, index) {
+                  students.data!
+                      .sort((a, b) => a.name!.compareTo(b.name ?? ''));
+                  return ListTile(
+                    title: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StudentProfile(
+                                  details: students.data![index]),
+                            ));
+                      },
+                      child: Container(
+                        width: MediaQuery.of(context).size.width,
+                        color: Colors.transparent,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Name: ${students.data![index].name}'),
+                            Text('Roll: ${students.data![index].roll}'),
+                            Text('Section: ${students.data![index].section}'),
+                          ],
+                        ),
+                      ),
+                    ),
+                    trailing: PopupMenuButton(
+                      itemBuilder: (c) {
+                        return {'Edit', 'Delete'}.map((String choice) {
+                          return PopupMenuItem(
+                              onTap: () async {
+                                Future.delayed(
+                                  const Duration(seconds: 0),
+                                  () {
+                                    if (choice == 'Edit') {
+                                      studentListtileOnTapEdit(
+                                          context, students.data![index]);
+                                    } else if (choice == 'Delete') {
+                                      AppDataProvider.of(context)
+                                          .appData
+                                          .deleteStudentDetails(
+                                              students.data![index]);
+                                    }
+                                  },
+                                );
+                              },
+                              value: choice,
+                              child: Text(choice));
+                        }).toList();
+                      },
+                    ),
+                  );
                 },
               );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  ListView studentsList(
-    BuildContext context,
-    List<Student> students,
-    List<int> indexList,
-    void Function(String str) onFilter,
-  ) {
-    return ListView(
-      children: [
-        TextField(
-          controller: searchText,
-          onChanged: onFilter,
-        ),
-        for (int i = 0; i < students.length; i++)
-          GestureDetector(
-            onTap: () async {
-              print('Student index $i');
-              // print('IndexList ${students[indexList[i]]}');
-              await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: ((context) => StudentProfile(
-                            details: students[i],
-                          ))));
-            },
-            child: Padding(
-                padding: const EdgeInsets.only(left: 8, right: 8, top: 8),
-                child: ListTile(
-                  tileColor: Colors.tealAccent,
-                  // leading: ProfileIconCreator(name: indexList[i].toString()),
-                  leading: ProfileIconCreator(name: students[i].name),
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Name: ${students[i].name}'),
-                      Text('Roll: ${students[i].roll}'),
-                      Text('Section: ${students[i].section}'),
-                    ],
-                  ),
-                  trailing: PopupMenuButton(
-                    itemBuilder: (c) {
-                      return {'Edit', 'Delete'}.map((String choice) {
-                        return PopupMenuItem(
-                            onTap: () async {
-                              Future.delayed(
-                                const Duration(seconds: 0),
-                                () {
-                                  if (choice == 'Edit') {
-                                    studentListtileOnTapEdit(
-                                        context, students[i]);
-                                  } else if (choice == 'Delete') {
-                                    AppDataProvider.of(context)
-                                        .appData
-                                        .deleteStudentDetails(students[i]);
-                                  }
-                                },
-                              );
-                            },
-                            value: choice,
-                            child: Text(choice));
-                      }).toList();
-                    },
-                  ),
-                  textColor: Colors.white,
-                )),
-          ),
-      ],
-    );
+            } else {
+              return const CircularProgressIndicator();
+            }
+          },
+        ));
   }
 
   void studentListtileOnTapEdit(BuildContext context, Student details) async {
-    var result = await Navigator.push(
+    await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => StudentInfoScreen.update(
             details: details,
           ),
         ));
-    AppDataProvider.of(context).appData.updateStudentDetails(result);
+
+    // AppDataProvider.of(context).appData.updateStudentDetails(result);
   }
 
   // void studentListtileOnTapEdit(BuildContext context, StudentDetails details,
@@ -238,6 +210,7 @@ class StudentListPage extends StatelessWidget {
   }
 
   void studentListOnTapEdit(BuildContext context, String batchName) {
+    final isar = AppDataProvider.of(context).appData.isar!;
     Future.delayed(
       const Duration(seconds: 0),
       () async {
@@ -283,16 +256,15 @@ class StudentListPage extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () async {
-                      final batchNames = await AppDataProvider.of(context)
-                          .appData
-                          .getBatches();
+                      List<Batch> batchNames =
+                          await isar.batchs.where().findAll();
                       _isInvalid.value = false;
-                      // for (int i = 0; i < batchNames.length; i++) {
-                      //   if (newBatchName == batchNames[i]) {
-                      //     _isInvalid.value = true;
-                      //     break;
-                      //   }
-                      // }
+                      for (int i = 0; i < batchNames.length; i++) {
+                        if (newBatchName == batchNames[i].name) {
+                          _isInvalid.value = true;
+                          break;
+                        }
+                      }
                       if (!_isInvalid.value) Navigator.pop(context);
                     },
                     child: Container(

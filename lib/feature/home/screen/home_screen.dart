@@ -4,7 +4,9 @@ import 'package:hisaberkhata/core/data_model/student.dart';
 import 'package:hisaberkhata/core/theme/app_theme.dart';
 import 'package:hisaberkhata/feature/batch/screen/batch_info_screen.dart';
 import 'package:hisaberkhata/feature/home/widget/batch_tile.dart';
+import 'package:hisaberkhata/feature/home/widget/horizontal_batch_list.dart';
 import 'package:hisaberkhata/screens/inherited_widget.dart';
+import 'package:isar/isar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../screens/student_info_screen.dart';
@@ -15,25 +17,21 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppDataProvider.of(context).appData.getBatches();
+    final isar = AppDataProvider.of(context).appData.isar!;
+    var batches = isar.batchs.where().findAll();
+    // AppDataProvider.of(context).appData.getBatches();
     return Scaffold(
-      appBar: buildAppBar(context),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 72),
+            const SizedBox(height: 50),
             buildGreetings(context),
             const SizedBox(height: 32),
-            buildSearchBar(context),
+            const HorizantalBatchList(),
             const SizedBox(height: 32),
-            // buildSectionTitle(context, 'Batches'),
-            buildBatchList(context),
-            const SizedBox(height: 32),
-            // buildSectionTitle(context, 'Bandor Students'),
-            // buildCechraStudentsList(context),
             const SizedBox(height: 32),
           ],
         ),
@@ -52,6 +50,9 @@ class HomeScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(
+                height: 50,
+              ),
               Text(
                 'Hello,',
                 style: Theme.of(context).textTheme.headlineMedium,
@@ -65,9 +66,9 @@ class HomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          Spacer(),
+          const Spacer(),
           buildSearch(context),
-          buildPopupMenu(context)
+          buildPopupMenu(context),
         ],
       ),
     );
@@ -113,13 +114,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  AppBar buildAppBar(BuildContext context) {
-    return AppBar(
-      title: const Text('Hisaber Khata'),
-      actions: [buildPopupMenu(context)],
-    );
-  }
-
   void showThemeChangerDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -155,20 +149,29 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget buildBatchList(BuildContext context) {
-    var batches = AppDataProvider.of(context).appData.studentBatch;
+    // var batches = AppDataProvider.of(context).appData.studentBatch;
+    final isar = AppDataProvider.of(context).appData.isar!;
+    var batches = isar.batchs.where().findAll().asStream();
     return SizedBox(
       height: 250,
-      child: ValueListenableBuilder(
-          valueListenable: batches,
-          builder: (context, batches, _) {
-            batches.sort((a, b) => a.name!.compareTo(b.name!));
+      child: StreamBuilder(
+        stream: batches,
+        // valueListenable: batches,
+        builder: (
+          context,
+          batches,
+        ) {
+          if (batches.data == null) {
+            return const CircularProgressIndicator();
+          } else {
+            batches.data!.sort((a, b) => a.name!.compareTo(b.name!));
             return ListView.builder(
               physics: const BouncingScrollPhysics(),
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemBuilder: (context, index) => index < batches.length
+              itemBuilder: (context, index) => index < batches.data!.length
                   ? BatchTile(
-                      batch: batches[index].name,
+                      batch: batches.data![index].name,
                       menuMap: {
                         'Edit': () {},
                         // studentListOnTapEdit(context, batches[index]),
@@ -180,16 +183,17 @@ class HomeScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => StudentListPage(
-                                      batchId: batches[index].id,
+                                      batchId: batches.data![index].id,
+                                      batchName: batches.data![index].name,
                                     )));
-                        AppDataProvider.of(context).appData.students.value = [];
+                        // AppDataProvider.of(context).appData.students.value = [];
                       },
                       onTapAdd: () async {
                         Student result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  StudentInfoScreen(batchId: batches[index].id),
+                              builder: (context) => StudentInfoScreen(
+                                  batchId: batches.data![index].id),
                             ));
                         print('result --> ${result}');
                         // if (result == null || result is! Student) return;
@@ -205,14 +209,19 @@ class HomeScreen extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (context) => BatchInfoScreen(),
                             ));
-                        print(result);
-                        if (result == null || result is! Batch) return;
-                        AppDataProvider.of(context).appData.createBatch(result);
+                        // print(result);
+                        if (result != null) {
+                          isar.writeTxn(() async {
+                            await isar.batchs.put(result as Batch);
+                          });
+                        }
                       },
                     ),
-              itemCount: batches.length + 1,
+              itemCount: batches.data!.length + 1,
             );
-          }),
+          }
+        },
+      ),
     );
   }
 
@@ -411,55 +420,6 @@ class HomeScreen extends StatelessWidget {
   //   );
   // }
 
-  // Widget buildCechraStudentsList(BuildContext context) {
-  //   final studentData = [
-  //     {
-  //       'name': 'Sharif Khan',
-  //       'due': 3,
-  //     },
-  //     {
-  //       'name': 'Mijan Khan',
-  //       'due': 3,
-  //     },
-  //     {
-  //       'name': 'Rahim Khan',
-  //       'due': 3,
-  //     },
-  //     {
-  //       'name': 'Karim Khan',
-  //       'due': 3,
-  //     },
-  //     {
-  //       'name': 'Sharif Khan',
-  //       'due': 3,
-  //     },
-  //     {
-  //       'name': 'Mijan Khan',
-  //       'due': 3,
-  //     },
-  //     {
-  //       'name': 'Rahim Khan',
-  //       'due': 3,
-  //     },
-  //     {
-  //       'name': 'Karim Khan',
-  //       'due': 3,
-  //     },
-  //   ];
-  //   return SizedBox(
-  //     height: MediaQuery.of(context).size.width * .35,
-  //     child: ListView.separated(
-  //       physics: const BouncingScrollPhysics(),
-  //       scrollDirection: Axis.horizontal,
-  //       separatorBuilder: (context, index) => const SizedBox(width: 4),
-  //       padding: const EdgeInsets.symmetric(horizontal: 16),
-  //       itemBuilder: (context, index) =>
-  //           buildStudentTile(context, studentData[index]),
-  //       itemCount: studentData.length,
-  //     ),
-  //   );
-  // }
-
   Widget buildStudentTile(BuildContext context, Map<String, dynamic> student) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -503,8 +463,6 @@ class HomeScreen extends StatelessWidget {
 class CustomSearchDelegate extends SearchDelegate {
   @override
   List<Widget>? buildActions(BuildContext context) {
-    // List<Student> matchQuery = filteredStudents(context, query);
-    // print('matchQuery --> ${matchQuery}');
     return [
       IconButton(
           onPressed: () {
@@ -525,7 +483,10 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildResults(BuildContext context) {
-    List<Student> matchQuery = filteredStudents(context, query);
+    // final isar = AppDataProvider.of(context).appData.isar!;
+    // List<Student> matchQuery = filteredStudents(context, query);
+
+    // isar.students.where().filter().nameContains(query).build();
     print('Query --> $matchQuery');
     return ListView.builder(
       itemCount: matchQuery.length,
@@ -540,7 +501,7 @@ class CustomSearchDelegate extends SearchDelegate {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    List<Student> matchQuery = filteredStudents(context, query);
+    // List<Student> matchQuery = filteredStudents(context, query);
     print('Query --> $matchQuery');
     return ListView.builder(
       itemCount: matchQuery.length,
@@ -554,16 +515,19 @@ class CustomSearchDelegate extends SearchDelegate {
   }
 }
 
-List<Student> filteredStudents(BuildContext context, String query) {
+List<Student> matchQuery = [];
+
+Future<List<Student>> filteredStudents(
+    BuildContext context, String query) async {
+  final isar = AppDataProvider.of(context).appData.isar!;
   AppDataProvider.of(context).appData.getStudents();
-  List<Student> students = AppDataProvider.of(context).appData.students.value;
+  List<Student> students = await isar.students.where().findAll();
   print('Students --> $students');
-  List<Student> matchQuery = [];
   for (int i = 0; i < students.length; i++) {
     if (students[i].name!.toLowerCase().contains(query.toLowerCase())) {
       matchQuery.add(students[i]);
     }
   }
   print('Match query --> $matchQuery');
-  return matchQuery;
+  return [];
 }

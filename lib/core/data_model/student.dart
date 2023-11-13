@@ -16,3 +16,5 @@ class Student {
   String? section;
   List<String>? paymentHistory = [];
 }
+
+class Transaction {}

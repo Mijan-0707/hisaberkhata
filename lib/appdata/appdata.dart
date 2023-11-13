@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hisaberkhata/appdata/student_details_data_model.dart';
 import 'package:hisaberkhata/constants/constants.dart';
 import 'package:hisaberkhata/core/data_model/batch.dart';
+import 'package:hisaberkhata/core/data_model/transaction.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -29,9 +30,9 @@ class AppData {
     'November',
     'December'
   ];
-  ValueNotifier<List<Batch>> studentBatch = ValueNotifier([]);
-  ValueNotifier<List<Student>> students = ValueNotifier([]);
-  ValueNotifier<List<Student>> tempStudents = ValueNotifier([]);
+  // ValueNotifier<List<Batch>> studentBatch = ValueNotifier([]);
+  // ValueNotifier<List<Student>> students = ValueNotifier([]);
+  // ValueNotifier<List<Student>> tempStudents = ValueNotifier([]);
   Student student = Student();
 
   Isar? isar;
@@ -40,15 +41,15 @@ class AppData {
     isar = await Isar.open([StudentSchema, BatchSchema], directory: dir.path);
   }
 
-  Future<void> getBatches() async {
-    List<Batch>? batchs = await isar?.batchs.where().findAll();
-    if (batchs != null) studentBatch.value = batchs;
-    print(batchs);
-  }
+  // Future<void> getBatches() async {
+  //   List<Batch>? batchs = await isar?.batchs.where().findAll();
+  //   if (batchs != null) studentBatch.value = batchs;
+  //   print(batchs);
+  // }
 
   Future createBatch(Batch batch) async {
-    studentBatch.value.add(batch);
-    studentBatch.notifyListeners();
+    // studentBatch.value.add(batch);
+    // studentBatch.notifyListeners();
     await isar!.writeTxn(() async {
       await isar!.batchs.put(batch);
     });
@@ -59,10 +60,10 @@ class AppData {
     await isar!.writeTxn(() async {
       await isar!.students.put(student);
     });
-    students.value.add(student);
-    students.notifyListeners();
-    tempStudents.value.add(student);
-    tempStudents.notifyListeners();
+    // students.value.add(student);
+    // students.notifyListeners();
+    // tempStudents.value.add(student);
+    // tempStudents.notifyListeners();
   }
 
   Future<void> updateBatchName(String old, String newName) async {
@@ -121,7 +122,7 @@ class AppData {
     List<Student>? students = await isar?.students.where().findAll();
     print('--> ${students}');
     if (students != null) {
-      this.students.value = students;
+      // this.students.value = students;
     }
   }
 
@@ -130,7 +131,7 @@ class AppData {
         await isar?.students.filter().batchIdEqualTo(batchId).findAll();
     print('--> ${students}');
     if (students != null) {
-      tempStudents.value = students;
+      // tempStudents.value = students;
     }
   }
 
@@ -138,7 +139,7 @@ class AppData {
     final status = await Permission.manageExternalStorage.request();
     if (!status.isGranted) return;
     isar?.copyToFile('/storage/emulated/0/Download/hisaberkhata_backup.isar');
-    return;
+    // return;
     final downloadDir = Directory('/storage/emulated/0/Download');
     if (!downloadDir.existsSync()) await downloadDir.create(recursive: true);
     final dirExists = downloadDir.existsSync();
@@ -184,11 +185,23 @@ class AppData {
   }
 
   Future<void> restoreData() async {
+    print('Restore');
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['txt', 'json'],
-      );
+          // type: FileType.custom,
+          // allowedExtensions: ['json', 'txt'],
+          );
+      // isar!.batchs.importJson(jsonEncode(isar!.batchs.where().findAll()));
+      print('result --> ${result}');
+      final backupIsar = await Isar.open([StudentSchema, BatchSchema],
+          directory: result!.files.first.path!);
+      print('${result.files.first.path}');
+      await isar!.writeTxn(() async {
+        isar!.attachCollections({Student: backupIsar.students});
+        print('i am in attachCollection');
+      });
+      backupIsar.close();
+      return;
       if (result == null) return;
       print(result);
       final f = File(result.files.first.path!);
@@ -209,10 +222,10 @@ class AppData {
         await prefs.setString(batch, jsonEncode(dataMap[batch]));
         // studentBatch.value.add(batch);
       }
-      studentBatch.notifyListeners();
+      // studentBatch.notifyListeners();
       // await getBatchNames();
     } catch (e) {
-      // print(e);
+      print(e);
     }
   }
 
